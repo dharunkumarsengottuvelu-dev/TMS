@@ -10,6 +10,14 @@ export const api = axios.create({
   },
 });
 
+// Request interceptor ensuring standard /api prefix routing
+api.interceptors.request.use((config) => {
+  if (config.url && !config.url.startsWith('/api') && !config.url.startsWith('http')) {
+    config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
+  }
+  return config;
+});
+
 // Response interceptor for consistent response data & error extraction
 api.interceptors.response.use(
   (response) => {
@@ -31,3 +39,5 @@ api.interceptors.response.use(
     });
   }
 );
+
+export default api;

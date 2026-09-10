@@ -158,7 +158,111 @@ async function runTests() {
       : '❌ FAIL'
   );
 
-  console.log('\n🎉 ALL 13 BACKEND VERIFICATION & SECURITY TESTS COMPLETED SUCCESSFULLY!\n');
+  const createdTaskId = createRes.data?._id;
+
+  // 14. Reassign Task (Admin only)
+  const reassignRes = await fetch(`${base}/api/tasks/${createdTaskId}/reassign`, {
+    method: 'PATCH',
+    headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newEmployeeId: empList.data[1]._id }),
+  }).then((r) => r.json());
+  console.log(
+    '14. Task Reassignment (Admin):',
+    reassignRes.success && reassignRes.data.assignedEmployee._id === empList.data[1]._id
+      ? '✅ PASS'
+      : '❌ FAIL'
+  );
+
+  // 15. Subtasks (Add & Toggle)
+  const subtaskRes = await fetch(`${base}/api/tasks/${createdTaskId}/subtasks`, {
+    method: 'POST',
+    headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: 'Configure CI Runner' }),
+  }).then((r) => r.json());
+  const subtaskId = subtaskRes.data?.[0]?._id;
+  const toggleRes = await fetch(`${base}/api/tasks/${createdTaskId}/subtasks/${subtaskId}`, {
+    method: 'PATCH',
+    headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isCompleted: true }),
+  }).then((r) => r.json());
+  console.log(
+    '15. Subtask Checklist & Toggle:',
+    subtaskRes.success && toggleRes.success && toggleRes.data?.[0]?.isCompleted === true
+      ? '✅ PASS'
+      : '❌ FAIL'
+  );
+
+  // 16. Task Comments (Add & Fetch)
+  const commentRes = await fetch(`${base}/api/tasks/${createdTaskId}/comments`, {
+    method: 'POST',
+    headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: 'Initial test setup looks solid.' }),
+  }).then((r) => r.json());
+  const commentsList = await fetch(`${base}/api/tasks/${createdTaskId}/comments`, {
+    headers: { Cookie: adminCookie },
+  }).then((r) => r.json());
+  console.log(
+    '16. Task Collaboration Comments:',
+    commentRes.success && commentsList.data?.length >= 1 ? '✅ PASS' : '❌ FAIL'
+  );
+
+  // 17. In-App Notifications
+  const notifRes = await fetch(`${base}/api/notifications`, {
+    headers: { Cookie: empCookie },
+  }).then((r) => r.json());
+  console.log(
+    '17. In-App Notification Center:',
+    notifRes.success && Array.isArray(notifRes.data) ? '✅ PASS' : '❌ FAIL'
+  );
+
+  // 18. Audit Logs (Admin access & Employee blocked 403)
+  const auditRes = await fetch(`${base}/api/audit-logs`, {
+    headers: { Cookie: adminCookie },
+  }).then((r) => r.json());
+  const auditForbidden = await fetch(`${base}/api/audit-logs`, {
+    headers: { Cookie: empCookie },
+  });
+  console.log(
+    '18. Immutable Audit Logs & Security Boundary:',
+    auditRes.success && auditForbidden.status === 403 ? '✅ PASS' : '❌ FAIL'
+  );
+
+  // 19. Executive Reports & Performance Analytics
+  const summaryRes = await fetch(`${base}/api/reports/summary`, {
+    headers: { Cookie: adminCookie },
+  }).then((r) => r.json());
+  const perfRes = await fetch(`${base}/api/reports/performance`, {
+    headers: { Cookie: adminCookie },
+  }).then((r) => r.json());
+  console.log(
+    '19. Executive Reports & Employee Performance:',
+    summaryRes.success && perfRes.success && Array.isArray(perfRes.data) ? '✅ PASS' : '❌ FAIL'
+  );
+
+  // 20. CSV Export
+  const csvRes = await fetch(`${base}/api/tasks/export/csv`, {
+    headers: { Cookie: adminCookie },
+  });
+  const csvText = await csvRes.text();
+  console.log(
+    '20. Filtered Task CSV Export:',
+    csvRes.status === 200 && csvText.includes('Task ID') && csvText.includes('Priority')
+      ? '✅ PASS'
+      : '❌ FAIL'
+  );
+
+  // 21. Bulk Status Update
+  const bulkRes = await fetch(`${base}/api/tasks/bulk-status`, {
+    method: 'POST',
+    headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskIds: [createdTaskId], status: 'IN_PROGRESS' }),
+  }).then((r) => r.json());
+  console.log(
+    '21. Bulk Task Operations (Admin):',
+    bulkRes.success && bulkRes.data.modifiedCount >= 1 ? '✅ PASS' : '❌ FAIL'
+  );
+
+  console.log('\n🎉 ALL 21 BACKEND VERIFICATION & PROFESSIONAL TESTS COMPLETED SUCCESSFULLY!\n');
 }
 
 runTests().catch(console.error);

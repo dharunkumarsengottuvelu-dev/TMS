@@ -49,17 +49,51 @@ const taskSchema = new mongoose.Schema(
       default: 'NOT_STARTED',
       index: true,
     },
+    startDate: {
+      type: Date,
+      default: null,
+    },
+    dueDate: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    subtasks: [
+      {
+        title: { type: String, required: true, trim: true },
+        isCompleted: { type: Boolean, default: false },
+        completedAt: { type: Date, default: null },
+      },
+    ],
   },
   {
     timestamps: true,
     collection: 'tasks',
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+// Virtual to determine if task is currently overdue
+taskSchema.virtual('isOverdue').get(function () {
+  if (!this.dueDate || this.status === 'COMPLETED') return false;
+  return new Date() > new Date(this.dueDate);
+});
 
 // Search and compound performance indexes
 taskSchema.index({ title: 'text', description: 'text' });
 taskSchema.index({ assignedEmployee: 1, status: 1 });
 taskSchema.index({ status: 1, priority: 1, createdAt: -1 });
+taskSchema.index({ isArchived: 1, dueDate: 1 });
 taskSchema.index({ createdAt: -1 });
 
 export const Task = mongoose.models.Task || mongoose.model('Task', taskSchema);

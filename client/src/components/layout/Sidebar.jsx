@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, Layers, X } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, Layers, X, BarChart2, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export function Sidebar({ isOpen, onClose }) {
@@ -11,6 +11,8 @@ export function Sidebar({ isOpen, onClose }) {
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/admin/tasks', label: 'Task Management', icon: CheckSquare },
     { to: '/admin/employees', label: 'Employees Directory', icon: Users },
+    { to: '/admin/reports', label: 'Executive Reports', icon: BarChart2 },
+    { to: '/admin/audit-logs', label: 'Audit Logs', icon: Shield },
   ];
 
   const employeeLinks = [

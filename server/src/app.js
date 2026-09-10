@@ -8,6 +8,9 @@ import { env } from './config/env.js';
 import taskRoutes from './routes/taskRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import auditRoutes from './routes/auditRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -78,6 +81,9 @@ app.get('/health', (_req, res) => {
 app.use('/api/tasks', taskRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/audit-logs', auditRoutes);
+app.use('/api/reports', reportRoutes);
 
 // 8. 404 and Centralized Error Handling
 app.use(notFoundHandler);

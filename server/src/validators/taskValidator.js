@@ -33,6 +33,15 @@ export const createTaskSchema = z.object({
     })
     .default('NOT_STARTED')
     .optional(),
+  startDate: z.string().datetime().or(z.string().date()).nullable().optional(),
+  dueDate: z.string().datetime().or(z.string().date()).nullable().optional(),
+  subtasks: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1, 'Subtask title cannot be empty').max(200),
+      })
+    )
+    .optional(),
 });
 
 export const updateTaskStatusSchema = z.object({
@@ -41,6 +50,50 @@ export const updateTaskStatusSchema = z.object({
       message: "Status must be one of: 'NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'",
     }),
   }),
+});
+
+export const reassignTaskSchema = z.object({
+  newEmployeeId: objectIdSchema,
+});
+
+export const addCommentSchema = z.object({
+  content: z
+    .string({ required_error: 'Comment content is required' })
+    .trim()
+    .min(1, 'Comment cannot be empty')
+    .max(2000, 'Comment cannot exceed 2000 characters'),
+});
+
+export const addSubtaskSchema = z.object({
+  title: z
+    .string({ required_error: 'Subtask title is required' })
+    .trim()
+    .min(1, 'Subtask title cannot be empty')
+    .max(200, 'Subtask title cannot exceed 200 characters'),
+});
+
+export const toggleSubtaskSchema = z.object({
+  isCompleted: z.boolean(),
+});
+
+export const bulkStatusSchema = z.object({
+  taskIds: z
+    .array(objectIdSchema)
+    .min(1, 'At least one task must be selected')
+    .max(100, 'Cannot perform bulk action on more than 100 tasks at once'),
+  status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], {
+    errorMap: () => ({
+      message: "Status must be one of: 'NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'",
+    }),
+  }),
+});
+
+export const bulkArchiveSchema = z.object({
+  taskIds: z
+    .array(objectIdSchema)
+    .min(1, 'At least one task must be selected')
+    .max(100, 'Cannot perform bulk action on more than 100 tasks at once'),
+  isArchived: z.boolean().default(true),
 });
 
 export const taskQuerySchema = z.object({
@@ -56,7 +109,14 @@ export const taskQuerySchema = z.object({
   status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED']).optional(),
   priority: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
   employee: z.string().trim().optional(),
-  sort: z.enum(['createdAt', 'updatedAt', 'title', 'priority', 'status']).default('createdAt'),
+  filter: z.enum(['all', 'overdue', 'dueToday', 'dueSoon', 'completed', 'archived']).optional(),
+  isArchived: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+  sort: z
+    .enum(['createdAt', 'updatedAt', 'title', 'priority', 'status', 'dueDate'])
+    .default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
 });
 

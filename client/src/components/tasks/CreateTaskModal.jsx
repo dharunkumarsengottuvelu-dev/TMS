@@ -13,6 +13,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
   const [assignedEmployee, setAssignedEmployee] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
   const [status, setStatus] = useState('NOT_STARTED');
+  const [startDate, setStartDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -20,7 +22,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
   const loadEmployees = useCallback(async () => {
     try {
       setLoadingEmployees(true);
-      const res = await employeeService.getEmployees({ limit: 100 });
+      const res = await employeeService.getEmployees({ limit: 100, status: 'ACTIVE', role: 'EMPLOYEE' });
       if (res.data) {
         setEmployees(res.data);
         if (res.data.length > 0 && !assignedEmployee) {
@@ -33,6 +35,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
       setLoadingEmployees(false);
     }
   }, [assignedEmployee]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -59,6 +62,11 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
       return;
     }
 
+    if (startDate && dueDate && new Date(startDate) > new Date(dueDate)) {
+      setErrorMessage('Start date cannot be after due date.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       setErrorMessage('');
@@ -69,6 +77,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
         assignedEmployee,
         priority,
         status,
+        startDate: startDate ? new Date(startDate).toISOString() : null,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       });
 
       // Reset form
@@ -76,6 +86,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
       setDescription('');
       setPriority('MEDIUM');
       setStatus('NOT_STARTED');
+      setStartDate('');
+      setDueDate('');
 
       onTaskCreated();
       onClose();
@@ -217,6 +229,34 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
           </div>
         </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="task-start-date">
+              Start Date <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span>
+            </label>
+            <input
+              id="task-start-date"
+              type="date"
+              className="form-control"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="task-due-date">
+              Due Date <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span>
+            </label>
+            <input
+              id="task-due-date"
+              type="date"
+              className="form-control"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div
           style={{
             fontSize: '0.78rem',
@@ -227,7 +267,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
             borderRadius: 'var(--radius-xs)',
           }}
         >
-          ℹ️ An automated email notification with task specifications will be dispatched to the selected employee upon creation.
+          ℹ️ An automated email notification and in-app alert will be dispatched to the selected employee upon creation.
         </div>
       </form>
     </Modal>

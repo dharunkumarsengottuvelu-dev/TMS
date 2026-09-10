@@ -16,6 +16,8 @@ import { AdminTasksPage } from '../pages/admin/AdminTasksPage.jsx';
 import { TaskDetailsPage } from '../pages/admin/TaskDetailsPage.jsx';
 import { EmployeesPage } from '../pages/admin/EmployeesPage.jsx';
 import { EmployeeDetailsPage } from '../pages/admin/EmployeeDetailsPage.jsx';
+import { ReportsPage } from '../pages/admin/ReportsPage.jsx';
+import { AuditLogsPage } from '../pages/admin/AuditLogsPage.jsx';
 
 // Employee Pages
 import { EmployeeDashboard } from '../pages/employee/EmployeeDashboard.jsx';
@@ -57,6 +59,8 @@ export function AppRoutes() {
           <Route path="/admin/tasks/:id" element={<TaskDetailsPage />} />
           <Route path="/admin/employees" element={<EmployeesPage />} />
           <Route path="/admin/employees/:id" element={<EmployeeDetailsPage />} />
+          <Route path="/admin/reports" element={<ReportsPage />} />
+          <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
         </Route>
       </Route>
 

@@ -2,6 +2,10 @@ import { connectDatabase, disconnectDatabase } from '../config/database.js';
 import { auth, mongoClient } from '../auth/auth.js';
 import { User } from '../models/User.js';
 import { Task } from '../models/Task.js';
+import { Activity } from '../models/Activity.js';
+import { AuditLog } from '../models/AuditLog.js';
+import { Comment } from '../models/Comment.js';
+import { Notification } from '../models/Notification.js';
 
 async function seed() {
   try {
@@ -13,6 +17,10 @@ async function seed() {
     // Clear existing task and user data for a clean, deterministic state
     console.log('🧹 Cleaning existing collections...');
     await Task.deleteMany({});
+    await Activity.deleteMany({});
+    await AuditLog.deleteMany({});
+    await Comment.deleteMany({});
+    await Notification.deleteMany({});
     await db.collection('user').deleteMany({});
     await db.collection('session').deleteMany({});
     await db.collection('account').deleteMany({});
@@ -74,8 +82,13 @@ async function seed() {
       console.log(`  ✅ Employee created: ${updated.name} (${updated.email})`);
     }
 
-    // 3. Create Enterprise Tasks
+    // 3. Create Enterprise Tasks with Deadlines and Subtasks
     console.log('\n📋 Creating production-grade enterprise tasks...');
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const fiveDaysLater = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const tenDaysLater = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+
     const tasks = [
       {
         title: 'Microservices Gateway Performance Optimization',
@@ -84,6 +97,13 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'HIGH',
         status: 'IN_PROGRESS',
+        startDate: threeDaysAgo,
+        dueDate: fiveDaysLater,
+        subtasks: [
+          { title: 'Profile endpoint latency under 10k RPS', isCompleted: true, completedAt: threeDaysAgo },
+          { title: 'Enable brotli payload compression', isCompleted: true, completedAt: now },
+          { title: 'Configure Redis distributed sliding-window counter', isCompleted: false },
+        ],
       },
       {
         title: 'Zero-Downtime MongoDB Atlas Cluster Migration',
@@ -92,6 +112,13 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'HIGH',
         status: 'COMPLETED',
+        completedAt: now,
+        startDate: threeDaysAgo,
+        dueDate: threeDaysAgo,
+        subtasks: [
+          { title: 'Provision secondary replica in us-east-1', isCompleted: true, completedAt: threeDaysAgo },
+          { title: 'Verify replication lag is zero', isCompleted: true, completedAt: now },
+        ],
       },
       {
         title: 'Enterprise RBAC Audit & Penetration Hardening',
@@ -100,6 +127,9 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'HIGH',
         status: 'COMPLETED',
+        completedAt: now,
+        startDate: threeDaysAgo,
+        dueDate: now,
       },
       {
         title: 'Real-Time Notification Dispatcher with Nodemailer',
@@ -108,6 +138,7 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'MEDIUM',
         status: 'IN_PROGRESS',
+        dueDate: fiveDaysLater,
       },
       {
         title: 'Design System Accessibility & WCAG 2.1 AA Compliance',
@@ -116,6 +147,7 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'LOW',
         status: 'NOT_STARTED',
+        dueDate: threeDaysAgo, // Overdue!
       },
       {
         title: 'Cloud Infrastructure Disaster Recovery Automation',
@@ -124,11 +156,90 @@ async function seed() {
         assignedBy: adminUser._id,
         priority: 'MEDIUM',
         status: 'PENDING',
+        dueDate: tenDaysLater,
       },
     ];
 
-    await Task.insertMany(tasks);
-    console.log(`  ✅ Seeded ${tasks.length} enterprise tasks.`);
+    const createdTasks = await Task.insertMany(tasks);
+    console.log(`  ✅ Seeded ${createdTasks.length} enterprise tasks.`);
+
+    // 4. Seed Activities and Comments
+    console.log('\n📝 Seeding collaboration comments and audit activity...');
+    await Comment.create({
+      task: createdTasks[0]._id,
+      author: adminUser._id,
+      content: 'Alex, please ensure benchmark reports are uploaded before Friday.',
+    });
+
+    await Comment.create({
+      task: createdTasks[0]._id,
+      author: createdEmployees[0]._id,
+      content: 'Benchmarking script is configured. Initial runs show 32ms p99 latency.',
+    });
+
+    await Activity.create([
+      {
+        task: createdTasks[0]._id,
+        actor: adminUser._id,
+        action: 'TASK_CREATED',
+        newValue: 'Microservices Gateway Performance Optimization',
+      },
+      {
+        task: createdTasks[0]._id,
+        actor: createdEmployees[0]._id,
+        action: 'STATUS_CHANGED',
+        previousValue: 'NOT_STARTED',
+        newValue: 'IN_PROGRESS',
+      },
+      {
+        task: createdTasks[1]._id,
+        actor: createdEmployees[1]._id,
+        action: 'STATUS_CHANGED',
+        previousValue: 'IN_PROGRESS',
+        newValue: 'COMPLETED',
+      },
+    ]);
+
+    await AuditLog.create([
+      {
+        actor: adminUser._id,
+        role: 'ADMIN',
+        action: 'CREATE_TASK',
+        entity: 'TASK',
+        entityId: createdTasks[0]._id,
+        details: { title: createdTasks[0].title, priority: 'HIGH' },
+        ip: '127.0.0.1',
+      },
+      {
+        actor: adminUser._id,
+        role: 'ADMIN',
+        action: 'PROVISION_SECURITY_ROLE',
+        entity: 'SYSTEM',
+        details: { policy: 'Strict Server-Side RBAC' },
+        ip: '127.0.0.1',
+      },
+    ]);
+
+    await Notification.create([
+      {
+        recipient: createdEmployees[0]._id,
+        sender: adminUser._id,
+        type: 'TASK_ASSIGNED',
+        title: 'New High Priority Task',
+        message: 'You have been assigned: "Microservices Gateway Performance Optimization".',
+        relatedTask: createdTasks[0]._id,
+      },
+      {
+        recipient: adminUser._id,
+        sender: createdEmployees[1]._id,
+        type: 'STATUS_UPDATED',
+        title: 'Task Completed',
+        message: 'Maya Patel completed "Zero-Downtime MongoDB Atlas Cluster Migration".',
+        relatedTask: createdTasks[1]._id,
+      },
+    ]);
+
+    console.log('  ✅ Seeded comments, activities, audit logs, and notifications.');
 
     console.log('\n==================================================');
     console.log('🎉 Database seeding completed successfully!');
