@@ -61,4 +61,11 @@ router.post(
   employeeController.resendInvitation
 );
 
+// DELETE /api/employees/:id — permanently delete employee account
+router.delete(
+  '/:id',
+  validateRequest({ params: employeeIdParamSchema }),
+  employeeController.deleteEmployee
+);
+
 export default router;

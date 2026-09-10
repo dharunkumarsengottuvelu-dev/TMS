@@ -209,7 +209,7 @@ export async function getEmployeeById(employeeId) {
 // ---------------------------------------------------------------------------
 // Create employee (Admin action — uses Better Auth's own user creation)
 // ---------------------------------------------------------------------------
-export async function createEmployee({ name, email, role = 'EMPLOYEE', department, designation, phone, joiningDate, employeeId: customEmployeeId, actorId, actorRole, ip }) {
+export async function createEmployee({ name, email, role = 'EMPLOYEE', department, designation, phone, joiningDate, employeeId: customEmployeeId, password, actorId, actorRole, ip }) {
   const { auth } = await import('../auth/auth.js');
 
   // Normalize email
@@ -232,8 +232,8 @@ export async function createEmployee({ name, email, role = 'EMPLOYEE', departmen
     resolvedEmployeeId = await generateEmployeeId();
   }
 
-  // Generate a strong random temporary password (not shared with user via email)
-  const tempPassword = randomBytes(12).toString('base64').replace(/[/+=]/g, 'A') + '!7Kx';
+  // Generate a strong random temporary password if none is provided
+  const actualPassword = password && password.trim() ? password.trim() : randomBytes(12).toString('base64').replace(/[/+=]/g, 'A') + '!7Kx';
 
   // Use Better Auth's signUpEmail to create the auth account (handles all hashing internally)
   let authResult;
@@ -242,7 +242,7 @@ export async function createEmployee({ name, email, role = 'EMPLOYEE', departmen
       body: {
         name: name.trim(),
         email: normalizedEmail,
-        password: tempPassword,
+        password: actualPassword,
       },
       headers: new Headers({ 'x-internal-create': 'true' }),
     });
@@ -465,4 +465,42 @@ export async function resendInvitation({ employeeId, actorId, actorRole, ip }) {
 export async function getDepartments() {
   const departments = await User.distinct('department', { department: { $ne: null } });
   return departments.filter(Boolean).sort();
+}
+
+// ---------------------------------------------------------------------------
+// Delete employee (Admin action — permanent, hard delete)
+// ---------------------------------------------------------------------------
+export async function deleteEmployee({ employeeId, actorId, actorRole, ip }) {
+  const employee = await User.findById(employeeId);
+  if (!employee) {
+    throw ApiError.notFound('Employee not found.');
+  }
+
+  // Unassign any open tasks from this employee
+  await Task.updateMany(
+    { assignedEmployee: employee._id, status: { $nin: ['COMPLETED'] } },
+    { $unset: { assignedEmployee: '' } }
+  );
+
+  const snapshot = {
+    name: employee.name,
+    email: employee.email,
+    employeeId: employee.employeeId,
+    role: employee.role,
+    department: employee.department,
+  };
+
+  await User.deleteOne({ _id: employeeId });
+
+  await recordAudit({
+    actor: actorId,
+    role: actorRole,
+    action: 'DELETE_EMPLOYEE',
+    entity: 'EMPLOYEE',
+    entityId: employeeId,
+    details: { deletedSnapshot: snapshot },
+    ip,
+  });
+
+  return { deleted: true, snapshot };
 }

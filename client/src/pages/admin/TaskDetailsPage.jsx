@@ -6,6 +6,7 @@ import { PriorityBadge } from '../../components/common/PriorityBadge.jsx';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { Modal } from '../../components/common/Modal.jsx';
 import { employeeService } from '../../services/employeeService.js';
+import { EditTaskModal } from '../../components/tasks/EditTaskModal.jsx';
 import {
   ArrowLeft,
   Trash2,
@@ -21,6 +22,7 @@ import {
   MessageSquare,
   Activity as ActivityIcon,
   Send,
+  Edit2,
 } from 'lucide-react';
 import api from '../../services/api.js';
 
@@ -32,6 +34,7 @@ export function TaskDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Reassignment Modal state
   const [isReassignOpen, setIsReassignOpen] = useState(false);
@@ -209,6 +212,16 @@ export function TaskDetailsPage() {
         </Link>
 
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowEditModal(true)}
+            title="Edit task title, description, priority, or deadline"
+          >
+            <Edit2 size={14} />
+            <span>Edit Task</span>
+          </button>
+
           <button
             type="button"
             className="btn btn-secondary btn-sm"
@@ -730,6 +743,16 @@ export function TaskDetailsPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Edit Task Modal */}
+      {showEditModal && (
+        <EditTaskModal
+          task={task}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onTaskUpdated={fetchTaskDetails}
+        />
+      )}
     </div>
   );
 }

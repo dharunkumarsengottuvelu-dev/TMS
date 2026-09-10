@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { employeeService } from '../../services/employeeService.js';
 import { AddEmployeeModal } from '../../components/tasks/AddEmployeeModal.jsx';
+import { EditEmployeeModal } from '../../components/tasks/EditEmployeeModal.jsx';
 import { Pagination } from '../../components/common/Pagination.jsx';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import {
   Search, UserPlus, Eye, RotateCcw, Users, ShieldCheck,
   UserX, ChevronDown, Mail, AlertTriangle, CheckCircle2,
-  XCircle, Building2,
+  XCircle, Building2, Edit, Trash2,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -45,7 +46,7 @@ function RoleBadge({ role }) {
   );
 }
 
-function ActionMenu({ employee, onStatusToggle, onResendInvitation, actionLoading }) {
+function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfile, onDelete, actionLoading }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -57,55 +58,115 @@ function ActionMenu({ employee, onStatusToggle, onResendInvitation, actionLoadin
 
   const isLoading = actionLoading === employee._id;
 
+  const dropdownStyle = {
+    position: 'absolute',
+    right: 0,
+    top: 'calc(100% + 4px)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: 10,
+    minWidth: 200,
+    zIndex: 9999,
+    boxShadow: '0 10px 40px rgba(0,0,0,0.18)',
+    padding: '6px 0',
+    overflow: 'hidden',
+  };
+
+  const itemStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '9px 16px',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    color: '#1e293b',
+    background: 'none',
+    border: 'none',
+    width: '100%',
+    textAlign: 'left',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    transition: 'background 0.15s',
+  };
+
+  const dangerStyle = { ...itemStyle, color: '#dc2626' };
+
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <button
         className="btn btn-secondary btn-sm"
         onClick={() => setOpen((p) => !p)}
         disabled={isLoading}
-        style={{ gap: 4 }}
+        style={{ gap: 4, minWidth: 90 }}
       >
         {isLoading ? <span className="spinner" style={{ width: 12, height: 12 }} /> : 'Actions'}
         <ChevronDown size={12} />
       </button>
+
       {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: '100%', marginTop: 4,
-          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-          borderRadius: 8, minWidth: 180, zIndex: 100,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-        }}>
+        <div style={dropdownStyle}>
           <Link
             to={`/admin/employees/${employee._id}`}
-            className="dropdown-item"
+            style={itemStyle}
             onClick={() => setOpen(false)}
+            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
           >
-            <Eye size={14} /> View Profile
+            <Eye size={15} color="#64748b" /> View Profile
           </Link>
 
+          <button
+            style={itemStyle}
+            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            onClick={() => { setOpen(false); onEditProfile(employee); }}
+          >
+            <Edit size={15} color="#64748b" /> Edit Profile
+          </button>
+
           {employee.onboardingStatus === 'INVITED' && (
-            <button className="dropdown-item" onClick={() => { setOpen(false); onResendInvitation(employee); }}>
-              <Mail size={14} /> Resend Invitation
+            <button
+              style={itemStyle}
+              onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              onClick={() => { setOpen(false); onResendInvitation(employee); }}
+            >
+              <Mail size={15} color="#64748b" /> Resend Invitation
             </button>
           )}
 
-          <div style={{ borderTop: '1px solid var(--border-color)', margin: '4px 0' }} />
+          <div style={{ height: 1, background: '#f1f5f9', margin: '4px 0' }} />
 
           {employee.isActive ? (
             <button
-              className="dropdown-item dropdown-item-danger"
+              style={{ ...itemStyle, color: '#d97706' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#fffbeb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
               onClick={() => { setOpen(false); onStatusToggle(employee, false); }}
             >
-              <UserX size={14} /> Deactivate Account
+              <UserX size={15} color="#d97706" /> Deactivate Account
             </button>
           ) : (
             <button
-              className="dropdown-item dropdown-item-success"
+              style={{ ...itemStyle, color: '#16a34a' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
               onClick={() => { setOpen(false); onStatusToggle(employee, true); }}
             >
-              <CheckCircle2 size={14} /> Activate Account
+              <CheckCircle2 size={15} color="#16a34a" /> Activate Account
             </button>
           )}
+
+          <div style={{ height: 1, background: '#f1f5f9', margin: '4px 0' }} />
+
+          <button
+            style={dangerStyle}
+            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            onClick={() => { setOpen(false); onDelete(employee); }}
+          >
+            <Trash2 size={15} color="#dc2626" /> Delete Employee
+          </button>
         </div>
       )}
     </div>
@@ -124,6 +185,7 @@ export function EmployeesPage() {
   const [departments, setDepartments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -135,7 +197,7 @@ export function EmployeesPage() {
   // Load departments on mount
   useEffect(() => {
     employeeService.getDepartments()
-      .then((res) => setDepartments(Array.isArray(res.data) ? res.data : []))
+      .then((res) => setDepartments(Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : []))
       .catch(() => {});
   }, []);
 
@@ -182,6 +244,12 @@ export function EmployeesPage() {
     fetchEmployees();
   };
 
+  const handleEditSuccess = (updatedEmployee, msg) => {
+    setEditingEmployee(null);
+    showToast(msg || 'Employee updated successfully.');
+    fetchEmployees();
+  };
+
   const handleStatusToggle = async (employee, activate) => {
     const confirm = window.confirm(
       activate
@@ -195,12 +263,13 @@ export function EmployeesPage() {
       const res = await employeeService.updateEmployeeStatus(employee._id, activate);
       const action = activate ? 'activated' : 'deactivated';
       showToast(`${employee.name}'s account has been ${action}.`);
-      fetchEmployees();
-      if (!activate && res.data?.activeTaskCount > 0) {
+      // res is already the response body (interceptor unwraps it)
+      if (!activate && res?.data?.activeTaskCount > 0) {
         showToast(`⚠️ ${res.data.activeTaskCount} active task(s) remain assigned to this employee.`, 'warning');
       }
+      fetchEmployees();
     } catch (err) {
-      showToast(err?.response?.data?.message || err.message || 'Action failed.', 'error');
+      showToast(err?.message || 'Action failed.', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -212,7 +281,25 @@ export function EmployeesPage() {
       await employeeService.resendInvitation(employee._id);
       showToast(`Invitation email resent to ${employee.email}.`);
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to resend invitation.', 'error');
+      showToast(err?.message || 'Failed to resend invitation.', 'error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteEmployee = async (employee) => {
+    const ok = window.confirm(
+      `⚠️ Permanently delete "${employee.name}"?\n\nThis will:\n• Remove their account completely\n• Unassign all their open tasks\n\nThis action CANNOT be undone.`
+    );
+    if (!ok) return;
+
+    setActionLoading(employee._id);
+    try {
+      await employeeService.deleteEmployee(employee._id);
+      showToast(`${employee.name}'s account has been permanently deleted.`);
+      fetchEmployees();
+    } catch (err) {
+      showToast(err?.message || 'Failed to delete employee.', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -416,6 +503,8 @@ export function EmployeesPage() {
                           employee={emp}
                           onStatusToggle={handleStatusToggle}
                           onResendInvitation={handleResendInvitation}
+                          onEditProfile={setEditingEmployee}
+                          onDelete={handleDeleteEmployee}
                           actionLoading={actionLoading}
                         />
                       </td>
@@ -442,6 +531,15 @@ export function EmployeesPage() {
         <AddEmployeeModal
           onClose={() => setShowAddModal(false)}
           onSuccess={handleAddSuccess}
+        />
+      )}
+
+      {/* Edit Employee Modal */}
+      {editingEmployee && (
+        <EditEmployeeModal
+          employee={editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+          onSuccess={handleEditSuccess}
         />
       )}
     </div>

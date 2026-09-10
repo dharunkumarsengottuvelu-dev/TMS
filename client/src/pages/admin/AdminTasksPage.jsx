@@ -7,8 +7,9 @@ import { Pagination } from '../../components/common/Pagination.jsx';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import { CreateTaskModal } from '../../components/tasks/CreateTaskModal.jsx';
+import { EditTaskModal } from '../../components/tasks/EditTaskModal.jsx';
 import { Toast } from '../../components/common/Toast.jsx';
-import { Search, Plus, Trash2, Eye, RotateCcw, Download, CheckSquare, Square, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Trash2, Eye, Edit2, RotateCcw, Download, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import api from '../../services/api.js';
 
 export function AdminTasksPage() {
@@ -31,6 +32,7 @@ export function AdminTasksPage() {
   const [selectedTaskIds, setSelectedTaskIds] = useState([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
@@ -491,6 +493,16 @@ export function AdminTasksPage() {
                             <button
                               type="button"
                               className="btn btn-secondary btn-sm"
+                              onClick={() => setEditingTask(task)}
+                              title="Edit Task Specifications"
+                            >
+                              <Edit2 size={14} />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
                               style={{ color: 'var(--color-danger)' }}
                               onClick={() => handleDeleteTask(task._id, task.title)}
                               disabled={deletingId === task._id}
@@ -521,6 +533,19 @@ export function AdminTasksPage() {
           fetchTasks();
         }}
       />
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          onTaskUpdated={() => {
+            setToastMessage('Task specifications updated successfully!');
+            fetchTasks();
+          }}
+        />
+      )}
     </div>
   );
 }

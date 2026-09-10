@@ -246,6 +246,80 @@ export async function getTaskById(taskId, user) {
 }
 
 /**
+ * Update task specifications (Admin only)
+ */
+export async function updateTask({ taskId, updates, actor, ip = '127.0.0.1' }) {
+  const task = await Task.findById(taskId);
+  if (!task) {
+    throw ApiError.notFound('Task not found.');
+  }
+
+  const oldValues = {};
+  const newValues = {};
+
+  // If reassigning employee, verify new employee
+  if (updates.assignedEmployee && updates.assignedEmployee.toString() !== task.assignedEmployee.toString()) {
+    const newEmp = await User.findById(updates.assignedEmployee);
+    if (!newEmp || newEmp.role !== 'EMPLOYEE') {
+      throw ApiError.badRequest('Assigned employee is invalid.');
+    }
+    if (newEmp.isActive === false) {
+      throw ApiError.badRequest('Cannot assign task to a deactivated employee.');
+    }
+    oldValues.assignedEmployee = task.assignedEmployee;
+    task.assignedEmployee = newEmp._id;
+    newValues.assignedEmployee = newEmp._id;
+
+    try {
+      await sendTaskAssignedEmail({
+        employeeEmail: newEmp.email,
+        employeeName: newEmp.name,
+        taskTitle: updates.title || task.title,
+        taskDescription: updates.description || task.description,
+        priority: updates.priority || task.priority,
+        dueDate: updates.dueDate !== undefined ? updates.dueDate : task.dueDate,
+        assignedBy: actor.name || 'Admin',
+      });
+    } catch (_) {}
+  }
+
+  const fields = ['title', 'description', 'priority', 'status', 'dueDate', 'startDate'];
+  fields.forEach((field) => {
+    if (updates[field] !== undefined) {
+      oldValues[field] = task[field];
+      task[field] = updates[field];
+      newValues[field] = updates[field];
+    }
+  });
+
+  await task.save();
+
+  // Activity log
+  await logActivity({
+    task: task._id,
+    actor: actor.id,
+    action: 'UPDATED',
+    details: 'Task specifications updated by admin',
+  });
+
+  // Record Audit Log
+  await recordAudit({
+    actor: actor.id,
+    role: actor.role || 'ADMIN',
+    action: 'UPDATE_TASK',
+    entity: 'TASK',
+    entityId: task._id,
+    details: { oldValues, newValues },
+    ip,
+  });
+
+  return await Task.findById(task._id)
+    .populate('assignedEmployee', 'name email role isActive')
+    .populate('assignedBy', 'name email')
+    .lean();
+}
+
+/**
  * Update task status with ownership and role enforcement
  */
 export async function updateTaskStatus({ taskId, status, user, ip = '127.0.0.1' }) {

@@ -28,4 +28,8 @@ export const employeeService = {
   async resendInvitation(employeeId) {
     return api.post(`/api/employees/${employeeId}/resend-invitation`);
   },
+
+  async deleteEmployee(employeeId) {
+    return api.delete(`/api/employees/${employeeId}`);
+  },
 };

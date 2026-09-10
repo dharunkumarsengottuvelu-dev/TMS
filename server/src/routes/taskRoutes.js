@@ -5,6 +5,7 @@ import { requireRole } from '../middleware/roleMiddleware.js';
 import { validateRequest } from '../middleware/validateMiddleware.js';
 import {
   createTaskSchema,
+  updateTaskSchema,
   updateTaskStatusSchema,
   taskQuerySchema,
   taskIdParamSchema,
@@ -59,6 +60,14 @@ router.get(
   '/:id',
   validateRequest({ params: taskIdParamSchema }),
   taskController.getTaskById
+);
+
+// Edit task specifications (Admin only)
+router.patch(
+  '/:id',
+  requireRole('ADMIN'),
+  validateRequest({ params: taskIdParamSchema, body: updateTaskSchema }),
+  taskController.updateTask
 );
 
 // Update status

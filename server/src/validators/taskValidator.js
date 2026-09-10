@@ -44,6 +44,20 @@ export const createTaskSchema = z.object({
     .optional(),
 });
 
+export const updateTaskSchema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120).optional(),
+  description: z.string().trim().min(1, 'Description cannot be empty').max(2000).optional(),
+  priority: z.enum(['HIGH', 'MEDIUM', 'LOW'], {
+    errorMap: () => ({ message: "Priority must be one of: 'HIGH', 'MEDIUM', 'LOW'" }),
+  }).optional(),
+  status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], {
+    errorMap: () => ({ message: "Status must be one of: 'NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'" }),
+  }).optional(),
+  assignedEmployee: objectIdSchema.optional(),
+  dueDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+});
+
 export const updateTaskStatusSchema = z.object({
   status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], {
     errorMap: () => ({

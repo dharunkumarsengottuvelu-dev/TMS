@@ -33,6 +33,7 @@ export const createEmployeeSchema = z.object({
   phone: z.string().trim().max(20).optional().nullable(),
   joiningDate: z.string().optional().nullable(),
   employeeId: z.string().trim().optional().nullable(),
+  password: z.string().trim().min(6, 'Password must be at least 6 characters').optional().nullable(),
 });
 
 export const updateEmployeeSchema = z.object({

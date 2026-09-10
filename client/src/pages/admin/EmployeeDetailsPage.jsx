@@ -89,12 +89,12 @@ export function EmployeeDetailsPage() {
       const res = await employeeService.updateEmployeeStatus(employee._id, activate);
       const action = activate ? 'activated' : 'deactivated';
       showToast(`${employee.name}'s account has been ${action}.`);
-      if (!activate && res.data?.activeTaskCount > 0) {
+      if (!activate && res?.data?.activeTaskCount > 0) {
         showToast(`⚠️ ${res.data.activeTaskCount} active task(s) remain assigned. Consider reassigning them.`, 'warning');
       }
       fetchEmployee();
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Action failed.', 'error');
+      showToast(err?.message || 'Action failed.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -106,7 +106,7 @@ export function EmployeeDetailsPage() {
       await employeeService.resendInvitation(data.employee._id);
       showToast(`Invitation email resent to ${data.employee.email}.`);
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to resend invitation.', 'error');
+      showToast(err?.message || 'Failed to resend invitation.', 'error');
     } finally {
       setActionLoading(false);
     }

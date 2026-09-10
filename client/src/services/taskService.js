@@ -21,6 +21,11 @@ export const taskService = {
     return response.data;
   },
 
+  async updateTask(taskId, updates) {
+    const response = await api.patch(`/api/tasks/${taskId}`, updates);
+    return response.data;
+  },
+
   async deleteTask(taskId) {
     const response = await api.delete(`/api/tasks/${taskId}`);
     return response.data;

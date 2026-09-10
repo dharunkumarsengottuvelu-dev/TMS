@@ -54,6 +54,23 @@ export async function getTaskById(req, res, next) {
 }
 
 /**
+ * PATCH /api/tasks/:id - Update task specifications (Admin only)
+ */
+export async function updateTask(req, res, next) {
+  try {
+    const task = await taskService.updateTask({
+      taskId: req.params.id,
+      updates: req.body,
+      actor: req.user,
+      ip: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+    });
+    return sendSuccess(res, task, 'Task specifications updated successfully', 200);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * PATCH /api/tasks/:id/status - Update task status
  */
 export async function updateTaskStatus(req, res, next) {

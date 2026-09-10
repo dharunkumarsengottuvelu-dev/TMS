@@ -70,9 +70,9 @@ export function EditEmployeeModal({ employee, onClose, onSuccess }) {
       };
 
       const res = await employeeService.updateEmployee(employee._id, payload);
-      onSuccess(res.data, 'Employee profile updated successfully.');
+      onSuccess(res.data || res, 'Employee profile updated successfully.');
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Failed to update employee profile.';
+      const msg = err?.message || 'Failed to update employee profile.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export function EditEmployeeModal({ employee, onClose, onSuccess }) {
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-container" style={{ maxWidth: 580 }}>
+      <div className="modal-container" style={{ maxWidth: 580, backgroundColor: '#ffffff', color: '#0f172a' }}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

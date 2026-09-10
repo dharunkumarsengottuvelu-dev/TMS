@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { employeeService } from '../../services/employeeService.js';
-import { X, User, Mail, Briefcase, Building2, Phone, Calendar, IdCard, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, User, Mail, Briefcase, Building2, Phone, Calendar, IdCard, Loader2, AlertCircle, CheckCircle2, Lock } from 'lucide-react';
 
 const DEPARTMENTS = [
   'Engineering', 'Product', 'Design', 'Marketing', 'Sales',
@@ -23,6 +23,7 @@ const initialForm = {
   designation: '',
   phone: '',
   joiningDate: '',
+  password: '',
 };
 
 export function AddEmployeeModal({ onClose, onSuccess }) {
@@ -51,6 +52,9 @@ export function AddEmployeeModal({ onClose, onSuccess }) {
     if (!form.email.trim()) errs.email = 'Email address is required.';
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) errs.email = 'Please enter a valid email address.';
     if (!form.role) errs.role = 'Role is required.';
+    if (form.password && form.password.trim().length > 0 && form.password.trim().length < 6) {
+      errs.password = 'Password must be at least 6 characters.';
+    }
     return errs;
   };
 
@@ -75,12 +79,13 @@ export function AddEmployeeModal({ onClose, onSuccess }) {
         ...(form.designation.trim() && { designation: form.designation.trim() }),
         ...(form.phone.trim() && { phone: form.phone.trim() }),
         ...(form.joiningDate && { joiningDate: form.joiningDate }),
+        ...(form.password.trim() && { password: form.password.trim() }),
       };
 
       const res = await employeeService.createEmployee(payload);
-      onSuccess(res.data, res.message || 'Employee account created successfully.');
+      onSuccess(res.data || res, res.message || 'Employee account created successfully.');
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Failed to create employee account.';
+      const msg = err?.message || 'Failed to create employee account.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -89,7 +94,7 @@ export function AddEmployeeModal({ onClose, onSuccess }) {
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-container" style={{ maxWidth: 620 }}>
+      <div className="modal-container" style={{ maxWidth: 620, backgroundColor: '#ffffff', color: '#0f172a' }}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -192,6 +197,24 @@ export function AddEmployeeModal({ onClose, onSuccess }) {
               </div>
             </div>
 
+            <div className="form-group" style={{ marginTop: '12px' }}>
+              <label className="form-label" htmlFor="emp-password">
+                <Lock size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                Set Password
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 6, fontWeight: 400 }}>Auto-generated if blank</span>
+              </label>
+              <input
+                id="emp-password"
+                name="password"
+                type="text"
+                className={`form-control ${fieldErrors.password ? 'form-control-error' : ''}`}
+                placeholder="Enter password or leave blank to auto-generate"
+                value={form.password}
+                onChange={handleChange}
+              />
+              {fieldErrors.password && <span className="form-error-msg">{fieldErrors.password}</span>}
+            </div>
+
             {/* Professional Details Section */}
             <div className="form-section-label" style={{ marginTop: 8 }}>Professional Details</div>
 
@@ -270,9 +293,9 @@ export function AddEmployeeModal({ onClose, onSuccess }) {
             </div>
 
             {/* Onboarding info note */}
-            <div style={{ background: 'var(--color-info-bg, #eff6ff)', border: '1px solid var(--color-info-border, #bfdbfe)', borderRadius: 8, padding: '10px 14px', fontSize: '0.82rem', color: 'var(--color-info, #1d4ed8)', display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 4 }}>
+            <div style={{ background: 'var(--color-info-bg, #eff6ff)', border: '1px solid var(--color-info-border, #bfdbfe)', borderRadius: 8, padding: '10px 14px', fontSize: '0.82rem', color: 'var(--color-info, #1d4ed8)', display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 12 }}>
               <CheckCircle2 size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>A welcome email with login instructions will be sent to the employee automatically. No password will be shared in the email.</span>
+              <span>A welcome email with login instructions will be sent to the employee automatically. {form.password ? 'They can log in using the password you just set.' : 'A secure temporary password will be auto-generated.'}</span>
             </div>
           </div>
 

@@ -118,3 +118,20 @@ export async function resendInvitation(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * DELETE /api/employees/:id — Permanently delete employee account (Admin only)
+ */
+export async function deleteEmployee(req, res, next) {
+  try {
+    const result = await employeeService.deleteEmployee({
+      employeeId: req.params.id,
+      actorId: req.user.id,
+      actorRole: req.user.role,
+      ip: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+    });
+    return sendSuccess(res, result, `Employee "${result.snapshot.name}" has been permanently deleted.`, 200);
+  } catch (error) {
+    next(error);
+  }
+}

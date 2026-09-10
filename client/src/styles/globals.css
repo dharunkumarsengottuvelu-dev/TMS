@@ -743,7 +743,7 @@ a:hover {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 1000;
@@ -755,14 +755,16 @@ a:hover {
 }
 
 .modal-container {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.05);
   animation: slideUp 0.2s ease;
+  color: var(--text-primary, #0f172a);
 }
 
 .modal-header {
@@ -770,19 +772,20 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
   gap: var(--space-3);
   position: sticky;
   top: 0;
-  background: var(--bg-card);
-  z-index: 1;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  z-index: 10;
+  border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
 }
 
 .modal-title {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-primary, #0f172a);
   margin: 0;
 }
 
@@ -790,7 +793,7 @@ a:hover {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-subtle, #e2e8f0);
   background: transparent;
   color: var(--text-muted);
   display: flex;
@@ -808,6 +811,8 @@ a:hover {
 
 .modal-body {
   padding: var(--space-6);
+  background: #ffffff !important;
+  background-color: #ffffff !important;
 }
 
 .modal-footer {
@@ -815,9 +820,10 @@ a:hover {
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-app);
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  border-top: 1px solid var(--border-subtle, #e2e8f0);
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  border-radius: 0 0 var(--radius-lg, 12px) var(--radius-lg, 12px);
 }
 
 @keyframes slideUp {
@@ -837,14 +843,14 @@ a:hover {
  * Form Utilities
  * ------------------------------------------------------------- */
 .form-section-label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--primary-700, #3730a3);
   margin-bottom: var(--space-3);
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1.5px solid #e2e8f0;
 }
 
 .form-row-2 {
