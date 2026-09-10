@@ -1,6 +1,8 @@
 import app from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { env } from './config/env.js';
+import { Task } from './models/Task.js';
+import { User } from './models/User.js';
 
 async function startServer() {
   try {
@@ -8,6 +10,10 @@ async function startServer() {
 
     // Connect to MongoDB Atlas / Database
     await connectDatabase();
+
+    // Verify and synchronize schema indexes with MongoDB Atlas
+    await Promise.all([User.init(), Task.init()]);
+    console.log('✅ [Database] Schema indexes verified and synchronized with MongoDB Atlas.');
 
     const server = app.listen(env.PORT, () => {
       console.log(`\n==================================================`);
