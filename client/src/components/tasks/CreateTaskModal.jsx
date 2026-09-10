@@ -12,6 +12,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
   const [description, setDescription] = useState('');
   const [assignedEmployee, setAssignedEmployee] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
+  const [status, setStatus] = useState('NOT_STARTED');
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -67,12 +68,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
         description: description.trim(),
         assignedEmployee,
         priority,
+        status,
       });
 
       // Reset form
       setTitle('');
       setDescription('');
       setPriority('MEDIUM');
+      setStatus('NOT_STARTED');
 
       onTaskCreated();
       onClose();
@@ -153,7 +156,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-3)' }}>
           <div className="form-group">
             <label className="form-label" htmlFor="task-assignee">
               Assigned Employee <span className="required-star">*</span>
@@ -189,9 +192,27 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }) {
               onChange={(e) => setPriority(e.target.value)}
               required
             >
-              <option value="HIGH">HIGH Priority</option>
-              <option value="MEDIUM">MEDIUM Priority</option>
-              <option value="LOW">LOW Priority</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="task-initial-status">
+              Initial Status <span className="required-star">*</span>
+            </label>
+            <select
+              id="task-initial-status"
+              className="form-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              required
+            >
+              <option value="NOT_STARTED">Not Started</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
             </select>
           </div>
         </div>

@@ -7,7 +7,7 @@ import { sendTaskAssignedEmail, sendTaskStatusUpdatedEmail } from './emailServic
 /**
  * Create a new task (Admin only)
  */
-export async function createTask({ title, description, assignedEmployee, priority, assignedBy }) {
+export async function createTask({ title, description, assignedEmployee, priority, status = 'NOT_STARTED', assignedBy }) {
   // Validate that the assigned employee exists and is an active employee
   const employee = await User.findById(assignedEmployee);
   if (!employee) {
@@ -28,7 +28,7 @@ export async function createTask({ title, description, assignedEmployee, priorit
     assignedEmployee: employee._id,
     assignedBy,
     priority: priority || 'MEDIUM',
-    status: 'NOT_STARTED',
+    status: status || 'NOT_STARTED',
   });
 
   const populatedTask = await Task.findById(task._id)

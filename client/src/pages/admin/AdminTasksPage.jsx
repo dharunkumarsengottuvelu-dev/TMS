@@ -144,6 +144,7 @@ export function AdminTasksPage() {
             >
               <option value="">All Statuses</option>
               <option value="NOT_STARTED">Not Started</option>
+              <option value="PENDING">Pending</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="COMPLETED">Completed</option>
             </select>

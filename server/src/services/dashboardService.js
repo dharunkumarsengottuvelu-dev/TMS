@@ -15,6 +15,7 @@ export async function getAdminMetrics() {
           _id: null,
           totalTasks: { $sum: 1 },
           notStarted: { $sum: { $cond: [{ $eq: ['$status', 'NOT_STARTED'] }, 1, 0] } },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] } },
           inProgress: { $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] } },
           completed: { $sum: { $cond: [{ $eq: ['$status', 'COMPLETED'] }, 1, 0] } },
         },
@@ -31,6 +32,7 @@ export async function getAdminMetrics() {
   const metrics = taskMetrics[0] || {
     totalTasks: 0,
     notStarted: 0,
+    pending: 0,
     inProgress: 0,
     completed: 0,
   };
@@ -39,6 +41,7 @@ export async function getAdminMetrics() {
     totalEmployees,
     totalTasks: metrics.totalTasks,
     notStarted: metrics.notStarted,
+    pending: metrics.pending,
     inProgress: metrics.inProgress,
     completed: metrics.completed,
     recentTasks,
@@ -60,6 +63,7 @@ export async function getEmployeeMetrics(userId) {
           _id: null,
           assignedTasks: { $sum: 1 },
           notStarted: { $sum: { $cond: [{ $eq: ['$status', 'NOT_STARTED'] }, 1, 0] } },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] } },
           inProgress: { $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] } },
           completed: { $sum: { $cond: [{ $eq: ['$status', 'COMPLETED'] }, 1, 0] } },
         },
@@ -75,6 +79,7 @@ export async function getEmployeeMetrics(userId) {
   const metrics = taskMetrics[0] || {
     assignedTasks: 0,
     notStarted: 0,
+    pending: 0,
     inProgress: 0,
     completed: 0,
   };
@@ -82,6 +87,7 @@ export async function getEmployeeMetrics(userId) {
   return {
     assignedTasks: metrics.assignedTasks,
     notStarted: metrics.notStarted,
+    pending: metrics.pending,
     inProgress: metrics.inProgress,
     completed: metrics.completed,
     recentTasks,

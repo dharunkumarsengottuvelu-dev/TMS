@@ -60,7 +60,7 @@ export function AdminDashboard() {
     );
   }
 
-  const { totalEmployees = 0, totalTasks = 0, notStarted = 0, inProgress = 0, completed = 0, recentTasks = [] } = data || {};
+  const { totalEmployees = 0, totalTasks = 0, notStarted = 0, pending = 0, inProgress = 0, completed = 0, recentTasks = [] } = data || {};
 
   return (
     <div>
@@ -91,16 +91,16 @@ export function AdminDashboard() {
       </div>
 
       {/* Metrics Row */}
-      <div className="metrics-grid">
+      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-title">Active Employees</span>
+            <span className="metric-title">Active Staff</span>
             <div className="metric-icon-wrap" style={{ backgroundColor: '#e0e7ff', color: 'var(--primary-600)' }}>
               <Users size={18} />
             </div>
           </div>
           <div className="metric-value">{totalEmployees}</div>
-          <div className="metric-desc">Verified staff in directory</div>
+          <div className="metric-desc">Verified employees</div>
         </div>
 
         <div className="metric-card">
@@ -111,7 +111,7 @@ export function AdminDashboard() {
             </div>
           </div>
           <div className="metric-value">{totalTasks}</div>
-          <div className="metric-desc">Total across all stages</div>
+          <div className="metric-desc">All task records</div>
         </div>
 
         <div className="metric-card">
@@ -122,7 +122,18 @@ export function AdminDashboard() {
             </div>
           </div>
           <div className="metric-value">{notStarted}</div>
-          <div className="metric-desc">Awaiting employee kickoff</div>
+          <div className="metric-desc">Awaiting kickoff</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-header">
+            <span className="metric-title">Pending</span>
+            <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-pending-bg)', color: 'var(--status-pending-text)' }}>
+              <Clock size={18} />
+            </div>
+          </div>
+          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{pending}</div>
+          <div className="metric-desc">Pending prerequisites</div>
         </div>
 
         <div className="metric-card">
@@ -133,7 +144,7 @@ export function AdminDashboard() {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--color-info)' }}>{inProgress}</div>
-          <div className="metric-desc">Currently under execution</div>
+          <div className="metric-desc">Active execution</div>
         </div>
 
         <div className="metric-card">
@@ -144,7 +155,7 @@ export function AdminDashboard() {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--color-success)' }}>{completed}</div>
-          <div className="metric-desc">Successfully finalized</div>
+          <div className="metric-desc">Delivered deliverables</div>
         </div>
       </div>
 

@@ -4,9 +4,11 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { Layers, Shield, User, ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react';
 
 export function LoginPage() {
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Portal tab selection: 'ADMIN' | 'EMPLOYEE'
+  const [activePortal, setActivePortal] = useState('ADMIN');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -28,6 +30,20 @@ export function LoginPage() {
       setSubmitting(true);
       setErrorMessage('');
       const authenticatedUser = await login({ email, password });
+
+      // Enforce portal-role compatibility
+      if (activePortal === 'ADMIN' && authenticatedUser.role !== 'ADMIN') {
+        await logout();
+        setErrorMessage('Access Denied: This account belongs to an Employee. Please switch to the Employee Workspace tab.');
+        return;
+      }
+
+      if (activePortal === 'EMPLOYEE' && authenticatedUser.role !== 'EMPLOYEE') {
+        await logout();
+        setErrorMessage('Access Notice: This account has Administrator privileges. Please switch to the Administrator Portal tab.');
+        return;
+      }
+
       if (authenticatedUser.role === 'ADMIN') {
         navigate('/admin/dashboard', { replace: true });
       } else {
@@ -40,11 +56,20 @@ export function LoginPage() {
     }
   };
 
+  const handlePortalSwitch = (portal) => {
+    setActivePortal(portal);
+    setEmail('');
+    setPassword('');
+    setErrorMessage('');
+  };
+
   const handleQuickFill = (quickEmail, quickPassword) => {
     setEmail(quickEmail);
     setPassword(quickPassword);
     setErrorMessage('');
   };
+
+  const isAdminPortal = activePortal === 'ADMIN';
 
   return (
     <div
@@ -61,7 +86,7 @@ export function LoginPage() {
       <div
         style={{
           width: '100%',
-          maxWidth: '440px',
+          maxWidth: '460px',
           background: 'var(--bg-surface)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-xl)',
@@ -70,18 +95,19 @@ export function LoginPage() {
         }}
       >
         {/* Brand header */}
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
           <div
             style={{
               width: 44,
               height: 44,
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--primary-600)',
+              backgroundColor: isAdminPortal ? 'var(--primary-600)' : 'var(--color-info)',
               color: '#ffffff',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 'var(--space-3)',
+              transition: 'background-color var(--transition-fast)',
             }}
           >
             <Layers size={24} strokeWidth={2.2} />
@@ -90,8 +116,68 @@ export function LoginPage() {
             Enterprise TMS
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Production Task Management System
+            {isAdminPortal ? 'Administrator Management Portal' : 'Employee Operational Workspace'}
           </p>
+        </div>
+
+        {/* Separate Portal Selection Tabs (Requirement 5 Compliance) */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            backgroundColor: 'var(--bg-subtle)',
+            padding: '4px',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: 'var(--space-6)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handlePortalSwitch('ADMIN')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              backgroundColor: isAdminPortal ? 'var(--bg-surface)' : 'transparent',
+              color: isAdminPortal ? 'var(--primary-600)' : 'var(--text-muted)',
+              boxShadow: isAdminPortal ? 'var(--shadow-xs)' : 'none',
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            <Shield size={15} />
+            <span>Admin Portal</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handlePortalSwitch('EMPLOYEE')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              backgroundColor: !isAdminPortal ? 'var(--bg-surface)' : 'transparent',
+              color: !isAdminPortal ? 'var(--color-info)' : 'var(--text-muted)',
+              boxShadow: !isAdminPortal ? 'var(--shadow-xs)' : 'none',
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            <User size={15} />
+            <span>Employee Portal</span>
+          </button>
         </div>
 
         {/* Error Alert */}
@@ -120,7 +206,7 @@ export function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="login-email">
-              Work Email Address
+              {isAdminPortal ? 'Admin Email Address' : 'Employee Email Address'}
             </label>
             <div style={{ position: 'relative' }}>
               <Mail
@@ -138,7 +224,7 @@ export function LoginPage() {
                 type="email"
                 className="form-control"
                 style={{ paddingLeft: 38 }}
-                placeholder="name@enterprise.corp"
+                placeholder={isAdminPortal ? 'admin@enterprise.corp' : 'employee@enterprise.corp'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -179,10 +265,14 @@ export function LoginPage() {
           <button
             type="submit"
             className="btn btn-primary btn-lg"
-            style={{ width: '100%', marginTop: 'var(--space-2)' }}
+            style={{
+              width: '100%',
+              marginTop: 'var(--space-2)',
+              backgroundColor: isAdminPortal ? 'var(--primary-600)' : 'var(--color-info)',
+            }}
             disabled={submitting}
           >
-            {submitting ? 'Authenticating...' : 'Sign In to Workspace'}
+            {submitting ? 'Authenticating...' : `Sign In as ${isAdminPortal ? 'Administrator' : 'Employee'}`}
             {!submitting && <ArrowRight size={16} />}
           </button>
         </form>
@@ -190,39 +280,53 @@ export function LoginPage() {
         {/* Enterprise Quick-Fill Credentials */}
         <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-5)', borderTop: '1px solid var(--border-subtle)' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Quick-Fill Demo Credentials:
+            Quick-Fill {isAdminPortal ? 'Admin' : 'Employee'} Credentials:
           </span>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', textAlign: 'left' }}
-              onClick={() => handleQuickFill('admin@enterprise.corp', 'AdminPassword123!')}
-            >
-              <Shield size={14} color="var(--primary-600)" />
-              <span>Admin: <strong>admin@enterprise.corp</strong></span>
-            </button>
+            {isAdminPortal ? (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                onClick={() => handleQuickFill('admin@enterprise.corp', 'AdminPassword123!')}
+              >
+                <Shield size={14} color="var(--primary-600)" />
+                <span>Admin: <strong>admin@enterprise.corp</strong></span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                  onClick={() => handleQuickFill('alex.chen@enterprise.corp', 'EmployeePassword123!')}
+                >
+                  <User size={14} color="var(--color-info)" />
+                  <span>Developer: <strong>alex.chen@enterprise.corp</strong></span>
+                </button>
 
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', textAlign: 'left' }}
-              onClick={() => handleQuickFill('alex.chen@enterprise.corp', 'EmployeePassword123!')}
-            >
-              <User size={14} color="var(--color-info)" />
-              <span>Employee: <strong>alex.chen@enterprise.corp</strong></span>
-            </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                  onClick={() => handleQuickFill('maya.patel@enterprise.corp', 'EmployeePassword123!')}
+                >
+                  <User size={14} color="var(--color-info)" />
+                  <span>Architect: <strong>maya.patel@enterprise.corp</strong></span>
+                </button>
 
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', textAlign: 'left' }}
-              onClick={() => handleQuickFill('maya.patel@enterprise.corp', 'EmployeePassword123!')}
-            >
-              <User size={14} color="var(--color-info)" />
-              <span>Employee: <strong>maya.patel@enterprise.corp</strong></span>
-            </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                  onClick={() => handleQuickFill('jordan.taylor@enterprise.corp', 'EmployeePassword123!')}
+                >
+                  <User size={14} color="var(--color-info)" />
+                  <span>Engineer: <strong>jordan.taylor@enterprise.corp</strong></span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

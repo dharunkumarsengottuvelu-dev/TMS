@@ -102,7 +102,7 @@ export function EmployeeDetailsPage() {
       </div>
 
       {/* Workload Metrics */}
-      <div className="metrics-grid">
+      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-title">Total Assigned</span>
@@ -123,6 +123,17 @@ export function EmployeeDetailsPage() {
           </div>
           <div className="metric-value">{stats.notStarted}</div>
           <div className="metric-desc">Awaiting start</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-header">
+            <span className="metric-title">Pending</span>
+            <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-pending-bg)', color: 'var(--status-pending-text)' }}>
+              <Clock size={18} />
+            </div>
+          </div>
+          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{stats.pending || 0}</div>
+          <div className="metric-desc">Pending resolution</div>
         </div>
 
         <div className="metric-card">

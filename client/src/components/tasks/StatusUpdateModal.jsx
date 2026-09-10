@@ -102,6 +102,7 @@ export function StatusUpdateModal({ isOpen, onClose, task, onStatusUpdated }) {
             required
           >
             <option value="NOT_STARTED">Not Started</option>
+            <option value="PENDING">Pending</option>
             <option value="IN_PROGRESS">In Progress</option>
             <option value="COMPLETED">Completed</option>
           </select>

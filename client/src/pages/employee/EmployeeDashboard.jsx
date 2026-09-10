@@ -57,7 +57,7 @@ export function EmployeeDashboard() {
     );
   }
 
-  const { assignedTasks = 0, notStarted = 0, inProgress = 0, completed = 0, recentTasks = [] } = data || {};
+  const { assignedTasks = 0, notStarted = 0, pending = 0, inProgress = 0, completed = 0, recentTasks = [] } = data || {};
 
   return (
     <div>
@@ -83,7 +83,7 @@ export function EmployeeDashboard() {
       </div>
 
       {/* Metric Cards */}
-      <div className="metrics-grid">
+      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-title">Assigned Tasks</span>
@@ -104,6 +104,17 @@ export function EmployeeDashboard() {
           </div>
           <div className="metric-value">{notStarted}</div>
           <div className="metric-desc">Pending commencement</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-header">
+            <span className="metric-title">Pending</span>
+            <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-pending-bg)', color: 'var(--status-pending-text)' }}>
+              <Clock size={18} />
+            </div>
+          </div>
+          <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{pending}</div>
+          <div className="metric-desc">Pending blocker resolution</div>
         </div>
 
         <div className="metric-card">

@@ -151,6 +151,7 @@ export async function sendTaskStatusUpdatedEmail({ adminEmail, adminName, employ
 
     const statusColors = {
       NOT_STARTED: '#64748b',
+      PENDING: '#d97706',
       IN_PROGRESS: '#0284c7',
       COMPLETED: '#16a34a',
     };

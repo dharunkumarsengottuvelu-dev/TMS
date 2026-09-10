@@ -25,11 +25,21 @@ export const createTaskSchema = z.object({
   priority: z.enum(['HIGH', 'MEDIUM', 'LOW'], {
     errorMap: () => ({ message: "Priority must be one of: 'HIGH', 'MEDIUM', 'LOW'" }),
   }),
+  status: z
+    .enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], {
+      errorMap: () => ({
+        message: "Status must be one of: 'NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'",
+      }),
+    })
+    .default('NOT_STARTED')
+    .optional(),
 });
 
 export const updateTaskStatusSchema = z.object({
-  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'], {
-    errorMap: () => ({ message: "Status must be one of: 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'" }),
+  status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], {
+    errorMap: () => ({
+      message: "Status must be one of: 'NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'",
+    }),
   }),
 });
 
@@ -43,7 +53,7 @@ export const taskQuerySchema = z.object({
     .optional()
     .transform((val) => (val ? Math.min(100, Math.max(1, parseInt(val, 10) || 10)) : 10)),
   search: z.string().trim().optional(),
-  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED']).optional(),
+  status: z.enum(['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED']).optional(),
   priority: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
   employee: z.string().trim().optional(),
   sort: z.enum(['createdAt', 'updatedAt', 'title', 'priority', 'status']).default('createdAt'),

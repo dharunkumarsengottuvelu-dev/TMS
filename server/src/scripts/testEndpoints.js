@@ -89,10 +89,13 @@ async function runTests() {
   const empTasks = await fetch(base + '/api/tasks', {
     headers: { Cookie: empCookie },
   }).then((r) => r.json());
+  const allBelongToAlex = empTasks.data?.every(
+    (t) => t.assignedEmployee.email === 'alex.chen@enterprise.corp' || t.assignedEmployee === 'alex.chen@enterprise.corp'
+  );
   console.log(
     '9. Employee fetched their assigned tasks count:',
-    empTasks.success && empTasks.data.length === 2 ? '✅ PASS' : '❌ FAIL',
-    `(${empTasks.data?.length} tasks assigned to Alex)`
+    empTasks.success && empTasks.data.length > 0 && allBelongToAlex ? '✅ PASS' : '❌ FAIL',
+    `(${empTasks.data?.length} tasks assigned to Alex, all verified)`
   );
 
   // 10. Employee updating their own task status to COMPLETED

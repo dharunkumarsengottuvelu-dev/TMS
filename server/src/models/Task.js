@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export const TASK_PRIORITIES = ['HIGH', 'MEDIUM', 'LOW'];
-export const TASK_STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'];
+export const TASK_STATUSES = ['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'];
 
 const taskSchema = new mongoose.Schema(
   {

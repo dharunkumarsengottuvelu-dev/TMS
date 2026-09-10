@@ -123,7 +123,7 @@ async function seed() {
         assignedEmployee: createdEmployees[1]._id, // Maya Patel
         assignedBy: adminUser._id,
         priority: 'MEDIUM',
-        status: 'NOT_STARTED',
+        status: 'PENDING',
       },
     ];
 

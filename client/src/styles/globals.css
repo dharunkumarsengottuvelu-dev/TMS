@@ -359,6 +359,13 @@ a:hover {
 }
 .badge-status-not-started .badge-dot { background-color: var(--status-not-started-text); }
 
+.badge-status-pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border-color: var(--status-pending-border);
+}
+.badge-status-pending .badge-dot { background-color: var(--status-pending-text); }
+
 .badge-status-in-progress {
   background-color: var(--status-in-progress-bg);
   color: var(--status-in-progress-text);

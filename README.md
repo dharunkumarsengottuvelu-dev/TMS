@@ -18,16 +18,18 @@ The Enterprise Task Management System provides mission-critical operational over
 ## 2. Key Features
 
 ### For Administrators
-* **Operational Dashboard**: Live, non-mocked aggregate statistics (Active Employees, Total Tasks, Not Started, In Progress, Completed).
-* **Task Management**: Create tasks, set priorities (`HIGH`, `MEDIUM`, `LOW`), assign to verified personnel, search across titles and assignees, filter by status and priority, and paginate server-side.
+* **Dedicated Admin Portal**: Secure portal authentication strictly verified against administrative credentials.
+* **Operational Dashboard**: Live, non-mocked aggregate statistics (Active Employees, Total Tasks, Not Started, Pending, In Progress, Completed).
+* **Task Management**: Create tasks with initial statuses (`NOT_STARTED`, `PENDING`, `IN_PROGRESS`, `COMPLETED`), set priorities (`HIGH`, `MEDIUM`, `LOW`), assign to verified personnel, search across titles and assignees, filter by status and priority, and paginate server-side.
 * **Employee Directory**: Searchable directory of organizational staff with real-time active task counts and individual workload profiles.
 * **Full Task Inspection & Deletion**: Deep-dive into technical specifications, assigned employee details, assignment dates, and administrative deletion.
 * **Automated Notifications**: Receive instant email alerts whenever an employee transitions an assigned task's status.
 
 ### For Employees
-* **Personal Workload Dashboard**: Overview of allocated assignments, active task statuses, and progress metrics.
+* **Dedicated Employee Portal**: Distinct portal tab with role-gated access control.
+* **Personal Workload Dashboard**: Overview of allocated assignments, active task statuses (`Not Started`, `Pending`, `In Progress`, `Completed`), and progress metrics.
 * **Strict Scoped Task View**: Access only personally assigned tasks. Complete backend authorization prevents cross-employee data access.
-* **Status Progression**: Transition task state (`NOT_STARTED` $\to$ `IN_PROGRESS` $\to$ `COMPLETED`).
+* **Status Progression**: Transition task state across all four required stages (`NOT_STARTED` $\to$ `PENDING` $\to$ `IN_PROGRESS` $\to$ `COMPLETED`).
 * **Instant Email Triggers**: System alerts assigning managers upon status changes.
 
 ---
@@ -111,7 +113,7 @@ Models / Database (server/src/models/)
   assignedEmployee: { type: ObjectId, ref: 'User', required: true, index: true },
   assignedBy: { type: ObjectId, ref: 'User', required: true, index: true },
   priority: { type: String, enum: ['HIGH', 'MEDIUM', 'LOW'], default: 'MEDIUM', index: true },
-  status: { type: String, enum: ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'], default: 'NOT_STARTED', index: true },
+  status: { type: String, enum: ['NOT_STARTED', 'PENDING', 'IN_PROGRESS', 'COMPLETED'], default: 'NOT_STARTED', index: true },
   createdAt: Date,
   updatedAt: Date
 }
@@ -137,15 +139,15 @@ Models / Database (server/src/models/)
 ### Base URL: `http://localhost:5000`
 
 #### Authentication (`/api/auth/*`)
-* `POST /api/auth/sign-in/email`: Log in with email and password.
+* `POST /api/auth/sign-in/email`: Log in with email and password (supports dedicated portal role enforcement).
 * `POST /api/auth/sign-out`: Invalidate session and clear auth cookies.
 * `GET  /api/auth/get-session`: Retrieve current active session and user profile.
 
 #### Tasks (`/api/tasks`)
 * `GET    /api/tasks`: List tasks with query params (`search`, `status`, `priority`, `employee`, `sort`, `order`, `page`, `limit`).
-* `POST   /api/tasks`: Create and assign a task (**Admin only**).
+* `POST   /api/tasks`: Create and assign a task with initial status and priority (**Admin only**).
 * `GET    /api/tasks/:id`: Get full task details (**Ownership checked for employees**).
-* `PATCH  /api/tasks/:id/status`: Update task status (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`).
+* `PATCH  /api/tasks/:id/status`: Update task status (`NOT_STARTED`, `PENDING`, `IN_PROGRESS`, `COMPLETED`).
 * `DELETE /api/tasks/:id`: Permanently delete a task (**Admin only**).
 
 #### Employees (`/api/employees`)

@@ -52,6 +52,10 @@
   --status-not-started-text: #475569;
   --status-not-started-border: #cbd5e1;
 
+  --status-pending-bg: #fef3c7;
+  --status-pending-text: #b45309;
+  --status-pending-border: #fde68a;
+
   --status-in-progress-bg: #e0f2fe;
   --status-in-progress-text: #0369a1;
   --status-in-progress-border: #7dd3fc;

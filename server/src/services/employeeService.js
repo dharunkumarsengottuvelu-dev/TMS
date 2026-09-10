@@ -33,6 +33,7 @@ export async function getEmployees({ search, page = 1, limit = 10 }) {
         _id: '$assignedEmployee',
         totalTasks: { $sum: 1 },
         notStarted: { $sum: { $cond: [{ $eq: ['$status', 'NOT_STARTED'] }, 1, 0] } },
+        pending: { $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] } },
         inProgress: { $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] } },
         completed: { $sum: { $cond: [{ $eq: ['$status', 'COMPLETED'] }, 1, 0] } },
       },
@@ -49,6 +50,7 @@ export async function getEmployees({ search, page = 1, limit = 10 }) {
     taskStats: taskCountMap[emp._id.toString()] || {
       totalTasks: 0,
       notStarted: 0,
+      pending: 0,
       inProgress: 0,
       completed: 0,
     },
@@ -85,6 +87,7 @@ export async function getEmployeeById(employeeId) {
           _id: null,
           total: { $sum: 1 },
           notStarted: { $sum: { $cond: [{ $eq: ['$status', 'NOT_STARTED'] }, 1, 0] } },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] } },
           inProgress: { $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] } },
           completed: { $sum: { $cond: [{ $eq: ['$status', 'COMPLETED'] }, 1, 0] } },
         },
@@ -97,13 +100,14 @@ export async function getEmployeeById(employeeId) {
       .lean(),
   ]);
 
-  const stats = taskStats[0] || { total: 0, notStarted: 0, inProgress: 0, completed: 0 };
+  const stats = taskStats[0] || { total: 0, notStarted: 0, pending: 0, inProgress: 0, completed: 0 };
 
   return {
     employee,
     stats: {
       total: stats.total,
       notStarted: stats.notStarted,
+      pending: stats.pending,
       inProgress: stats.inProgress,
       completed: stats.completed,
     },
