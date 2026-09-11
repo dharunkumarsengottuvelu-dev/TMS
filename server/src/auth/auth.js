@@ -32,6 +32,9 @@ export const auth = betterAuth({
     ].filter(Boolean);
   },
   database: mongodbAdapter(db),
+  advanced: {
+    disableOriginCheck: true,
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
