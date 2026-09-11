@@ -25,10 +25,10 @@ const envSchema = z.object({
     'enterprise_super_secret_session_key_min_32_characters_long_12345'
   ),
   BETTER_AUTH_URL: z.string().default(
-    process.env.BETTER_AUTH_URL || vercelHost || 'http://localhost:5000'
+    process.env.BETTER_AUTH_URL || vercelHost || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5000')
   ),
   CLIENT_URL: z.string().default(
-    process.env.CLIENT_URL || vercelHost || 'http://localhost:5173'
+    process.env.CLIENT_URL || vercelHost || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5173')
   ),
   MAIL_HOST: z.string().default('smtp.gmail.com'),
   MAIL_PORT: z.coerce.number().default(587),
