@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Lock, Mail, AlertCircle, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { TaskOpsLogo } from '../../components/common/TaskOpsLogo.jsx';
 
 export function LoginPage() {
   const { user, login } = useAuth();
@@ -70,38 +71,22 @@ export function LoginPage() {
       >
         {/* Brand header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: '8px',
-              backgroundColor: 'var(--primary-600)',
-              color: '#FFFFFF',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px',
-              fontWeight: 800,
-              fontSize: '1.25rem',
-              letterSpacing: '-0.02em',
-              boxShadow: '0 2px 8px rgba(35, 109, 180, 0.3)',
-            }}
-          >
-            TF
+          <div style={{ display: 'inline-flex', marginBottom: '12px' }}>
+            <TaskOpsLogo size={46} showText={false} />
           </div>
           <h1
             style={{
-              fontSize: '1.4rem',
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
+              fontSize: '1.45rem',
+              fontWeight: 800,
+              letterSpacing: '-0.025em',
               color: '#111827',
               margin: '0 0 4px',
             }}
           >
-            TaskFlow
+            Task<span style={{ color: 'var(--primary-600)' }}>Ops</span>
           </h1>
           <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
-            Sign in to your enterprise workspace
+            Sign in to your enterprise operations portal
           </p>
         </div>
 
@@ -248,12 +233,12 @@ export function LoginPage() {
             color: 'var(--text-muted)',
           }}
         >
-          Protected by TaskFlow Enterprise Role-Based Access Control
+          Protected by TaskOps Enterprise Role-Based Access Control
         </div>
       </div>
 
       <div style={{ marginTop: '16px', fontSize: '0.74rem', color: '#9CA3AF' }}>
-        &copy; {new Date().getFullYear()} TaskFlow Systems. All rights reserved.
+        &copy; {new Date().getFullYear()} TaskOps Enterprise Systems. All rights reserved.
       </div>
     </div>
   );

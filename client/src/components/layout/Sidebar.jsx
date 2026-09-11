@@ -11,6 +11,7 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
+import { TaskOpsLogo } from '../common/TaskOpsLogo.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }) {
@@ -87,38 +88,13 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }) {
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-            {/* TaskFlow Mark */}
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '6px',
-                backgroundColor: 'var(--primary-600)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: '1.05rem',
-                letterSpacing: '-0.02em',
-                flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(35, 109, 180, 0.35)',
-              }}
-              title="TaskFlow Enterprise"
-            >
-              TF
-            </div>
-            {!collapsed && (
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.01em', color: '#FFFFFF' }}>
-                  TaskFlow
-                </div>
-                <div style={{ fontSize: '0.68rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {isAdmin ? 'Enterprise Admin' : 'Employee Portal'}
-                </div>
-              </div>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+            <TaskOpsLogo
+              size={30}
+              showText={!collapsed}
+              textColor="light"
+              subtitle={isAdmin ? 'Admin Console' : 'Employee Portal'}
+            />
           </div>
 
           {/* Desktop collapse toggle or Mobile close */}
