@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
 export const api = axios.create({
   baseURL,
@@ -24,12 +24,17 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    const statusCode = error.response?.status || 500;
     const message =
       error.response?.data?.message ||
       error.message ||
       'An unexpected network error occurred. Please try again.';
     const errors = error.response?.data?.errors || [];
-    const statusCode = error.response?.status || 500;
+
+    // If session expired or unauthorized on protected routes, redirect to login
+    if (statusCode === 401 && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
+    }
 
     return Promise.reject({
       message,

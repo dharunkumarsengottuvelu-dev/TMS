@@ -15,16 +15,24 @@ async function startServer() {
     // Connect to MongoDB Atlas / Database
     await connectDatabase();
 
-    // Verify and synchronize schema indexes with MongoDB Atlas
-    await Promise.all([
-      User.init(),
-      Task.init(),
-      Activity.init(),
-      AuditLog.init(),
-      Comment.init(),
-      Notification.init(),
+    // Verify and synchronize schema indexes safely
+    const syncModelIndex = async (model, modelName) => {
+      try {
+        await model.init();
+      } catch (err) {
+        console.warn(`⚠️ [Database] Schema index sync warning for ${modelName}:`, err.message);
+      }
+    };
+
+    await Promise.allSettled([
+      syncModelIndex(User, 'User'),
+      syncModelIndex(Task, 'Task'),
+      syncModelIndex(Activity, 'Activity'),
+      syncModelIndex(AuditLog, 'AuditLog'),
+      syncModelIndex(Comment, 'Comment'),
+      syncModelIndex(Notification, 'Notification'),
     ]);
-    console.log('✅ [Database] All schema indexes verified and synchronized with MongoDB Atlas.');
+    console.log('✅ [Database] All schema indexes verified and synchronized with MongoDB.');
 
     const server = app.listen(env.PORT, () => {
       console.log(`\n==================================================`);

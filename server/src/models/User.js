@@ -84,8 +84,11 @@ const userSchema = new mongoose.Schema(
 // Compound and search indexes for query performance
 userSchema.index({ name: 'text', email: 'text', employeeId: 'text', department: 'text' });
 userSchema.index({ role: 1, isActive: 1 });
-// Note: employeeId unique sparse index is defined at field level (sparse: true, unique via schema.index below)
-userSchema.index({ employeeId: 1 }, { unique: true, sparse: true });
+// Unique index on employeeId only when it is a non-null string
+userSchema.index(
+  { employeeId: 1 },
+  { unique: true, partialFilterExpression: { employeeId: { $type: 'string' } } }
+);
 userSchema.index({ onboardingStatus: 1 });
 
 export const User = mongoose.models.User || mongoose.model('User', userSchema);

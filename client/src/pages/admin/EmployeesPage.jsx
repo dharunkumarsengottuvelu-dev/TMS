@@ -46,30 +46,74 @@ function RoleBadge({ role }) {
   );
 }
 
-function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfile, onDelete, actionLoading }) {
+function ActionDropdown({
+  employee,
+  onEditProfile,
+  onStatusToggle,
+  onResendInvitation,
+  onDelete,
+  actionLoading,
+}) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [coords, setCoords] = useState({ top: 'auto', bottom: 'auto', right: '0px' });
+  const buttonRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < 240;
+      setCoords({
+        top: openUp ? 'auto' : `${rect.bottom + 4}px`,
+        bottom: openUp ? `${window.innerHeight - rect.top + 4}px` : 'auto',
+        right: `${Math.max(16, window.innerWidth - rect.right)}px`,
+      });
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  };
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    if (!open) return;
+    const handleOutsideClick = (e) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target) &&
+        buttonRef.current && !buttonRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    const handleScrollOrResize = () => setOpen(false);
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [open]);
 
   const isLoading = actionLoading === employee._id;
 
   const dropdownStyle = {
-    position: 'absolute',
-    right: 0,
-    top: 'calc(100% + 4px)',
+    position: 'fixed',
+    top: coords.top,
+    bottom: coords.bottom,
+    right: coords.right,
     background: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: 10,
     minWidth: 200,
-    zIndex: 9999,
-    boxShadow: '0 10px 40px rgba(0,0,0,0.18)',
+    zIndex: 99999,
+    boxShadow: '0 12px 36px -4px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.05)',
     padding: '6px 0',
-    overflow: 'hidden',
+    animation: 'fadeIn 0.12s ease-out',
   };
 
   const itemStyle = {
@@ -92,33 +136,36 @@ function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfil
   const dangerStyle = { ...itemStyle, color: '#dc2626' };
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: 'relative', display: 'inline-block' }}>
       <button
+        ref={buttonRef}
+        type="button"
         className="btn btn-secondary btn-sm"
-        onClick={() => setOpen((p) => !p)}
+        onClick={toggleDropdown}
         disabled={isLoading}
         style={{ gap: 4, minWidth: 90 }}
       >
         {isLoading ? <span className="spinner" style={{ width: 12, height: 12 }} /> : 'Actions'}
-        <ChevronDown size={12} />
+        <ChevronDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
       {open && (
-        <div style={dropdownStyle}>
+        <div ref={menuRef} style={dropdownStyle}>
           <Link
             to={`/admin/employees/${employee._id}`}
             style={itemStyle}
             onClick={() => setOpen(false)}
-            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
           >
             <Eye size={15} color="#64748b" /> View Profile
           </Link>
 
           <button
+            type="button"
             style={itemStyle}
-            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
             onClick={() => { setOpen(false); onEditProfile(employee); }}
           >
             <Edit size={15} color="#64748b" /> Edit Profile
@@ -126,9 +173,10 @@ function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfil
 
           {employee.onboardingStatus === 'INVITED' && (
             <button
+              type="button"
               style={itemStyle}
-              onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
               onClick={() => { setOpen(false); onResendInvitation(employee); }}
             >
               <Mail size={15} color="#64748b" /> Resend Invitation
@@ -139,18 +187,20 @@ function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfil
 
           {employee.isActive ? (
             <button
+              type="button"
               style={{ ...itemStyle, color: '#d97706' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#fffbeb'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#fffbeb'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
               onClick={() => { setOpen(false); onStatusToggle(employee, false); }}
             >
               <UserX size={15} color="#d97706" /> Deactivate Account
             </button>
           ) : (
             <button
+              type="button"
               style={{ ...itemStyle, color: '#16a34a' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
               onClick={() => { setOpen(false); onStatusToggle(employee, true); }}
             >
               <CheckCircle2 size={15} color="#16a34a" /> Activate Account
@@ -160,9 +210,10 @@ function ActionMenu({ employee, onStatusToggle, onResendInvitation, onEditProfil
           <div style={{ height: 1, background: '#f1f5f9', margin: '4px 0' }} />
 
           <button
+            type="button"
             style={dangerStyle}
-            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
-            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
             onClick={() => { setOpen(false); onDelete(employee); }}
           >
             <Trash2 size={15} color="#dc2626" /> Delete Employee
@@ -410,7 +461,18 @@ export function EmployeesPage() {
           <EmptyState
             title="No employees found"
             description={hasActiveFilters ? 'No employees match the current filters. Try adjusting your search.' : 'No employee records yet. Click "Add Employee" to onboard your first team member.'}
-            action={!hasActiveFilters ? { label: 'Add Employee', onClick: () => setShowAddModal(true) } : null}
+            action={
+              !hasActiveFilters ? (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  <UserPlus size={14} />
+                  <span>Add Employee</span>
+                </button>
+              ) : null
+            }
           />
         ) : (
           <>

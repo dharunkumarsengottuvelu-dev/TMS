@@ -33,9 +33,13 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      // Allow requests with no origin (e.g. mobile apps, curl, same-origin)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        (env.CLIENT_URL && origin === env.CLIENT_URL)
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`CORS policy blocked access from origin: ${origin}`));
@@ -68,7 +72,23 @@ app.all('/api/auth/*', toNodeHandler(auth));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-// 6. Health Check Endpoint
+// 6. Health & Status Endpoints
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    status: 'online',
+    message: 'Enterprise Task Management System API is running smoothly.',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api', (_req, res) => {
+  res.status(200).json({
+    status: 'online',
+    message: 'Enterprise TMS API Gateway',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'healthy',

@@ -20,7 +20,7 @@ async function runTests() {
   const adminLoginRes = await fetch(base + '/api/auth/sign-in/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...originHeader },
-    body: JSON.stringify({ email: 'admin@enterprise.corp', password: 'AdminPassword123!' }),
+    body: JSON.stringify({ email: 'taskmanagemtsystem.info@gmail.com', password: 'admin@123' }),
   });
   const adminCookie = adminLoginRes.headers.get('set-cookie');
   console.log(
@@ -39,7 +39,7 @@ async function runTests() {
   );
 
   // 5. Admin fetch employees
-  const empList = await fetch(base + '/api/employees', {
+  const empList = await fetch(base + '/api/employees?role=EMPLOYEE', {
     headers: { Cookie: adminCookie },
   }).then((r) => r.json());
   console.log(

@@ -236,17 +236,16 @@ export async function createEmployee({ name, email, role = 'EMPLOYEE', departmen
   const actualPassword = password && password.trim() ? password.trim() : randomBytes(12).toString('base64').replace(/[/+=]/g, 'A') + '!7Kx';
 
   // Use Better Auth's signUpEmail to create the auth account (handles all hashing internally)
-  let authResult;
   try {
-    authResult = await auth.api.signUpEmail({
+    await auth.api.signUpEmail({
       body: {
         name: name.trim(),
         email: normalizedEmail,
         password: actualPassword,
       },
-      headers: new Headers({ 'x-internal-create': 'true' }),
+      headers: new globalThis.Headers({ 'x-internal-create': 'true' }),
     });
-  } catch (authErr) {
+  } catch {
     throw ApiError.internal('Failed to create employee authentication account. Please try again.');
   }
 
@@ -282,6 +281,7 @@ export async function createEmployee({ name, email, role = 'EMPLOYEE', departmen
     role,
     department: department || null,
     designation: designation || null,
+    password: actualPassword,
     loginUrl,
   });
 

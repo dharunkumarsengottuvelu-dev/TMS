@@ -280,7 +280,9 @@ export async function updateTask({ taskId, updates, actor, ip = '127.0.0.1' }) {
         dueDate: updates.dueDate !== undefined ? updates.dueDate : task.dueDate,
         assignedBy: actor.name || 'Admin',
       });
-    } catch (_) {}
+    } catch (emailErr) {
+      console.warn('Non-critical email dispatch failure:', emailErr.message);
+    }
   }
 
   const fields = ['title', 'description', 'priority', 'status', 'dueDate', 'startDate'];
