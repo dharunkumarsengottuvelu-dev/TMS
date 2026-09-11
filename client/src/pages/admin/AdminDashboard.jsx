@@ -11,7 +11,6 @@ import {
   Users, UserCheck, UserX, CheckSquare,
   Clock, ArrowUpRight, Plus, AlertCircle,
   CheckCircle2, AlertTriangle, Activity as ActivityIcon,
-  UserPlus,
 } from 'lucide-react';
 
 export function AdminDashboard() {

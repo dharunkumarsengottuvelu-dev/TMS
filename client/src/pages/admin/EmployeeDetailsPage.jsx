@@ -7,23 +7,11 @@ import { PriorityBadge } from '../../components/common/PriorityBadge.jsx';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import {
-  ArrowLeft, User, Mail, Calendar, CheckSquare, Clock, CheckCircle2,
+  ArrowLeft, Mail, Calendar, CheckSquare, Clock, CheckCircle2,
   Pencil, UserX, RefreshCw, AlertTriangle, Building2, Phone, IdCard,
   Briefcase, AlertCircle, XCircle, TrendingUp,
 } from 'lucide-react';
 
-function InfoRow({ icon: Icon, label, value }) {
-  if (!value) return null;
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
-      <Icon size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
-      <div>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>{label}</span>
-        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</span>
-      </div>
-    </div>
-  );
-}
 
 function StatCard({ title, value, icon: Icon, iconBg, iconColor, valueColor }) {
   return (

@@ -7,7 +7,7 @@ import { Pagination } from '../../components/common/Pagination.jsx';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import {
-  Search, UserPlus, Eye, RotateCcw, Users, ShieldCheck,
+  Search, UserPlus, Eye, RotateCcw,
   UserX, ChevronDown, Mail, AlertTriangle, CheckCircle2,
   XCircle, Building2, Edit, Trash2,
 } from 'lucide-react';
@@ -223,8 +223,6 @@ function ActionMenu({
     </div>
   );
 }
-
-const ActionDropdown = ActionMenu;
 
 export function EmployeesPage() {
   const [employees, setEmployees] = useState([]);
