@@ -15,18 +15,5 @@
     "seed": "npm run seed --workspace=server",
     "build": "npm run build --workspace=client",
     "lint": "npm run lint --workspace=server && npm run lint --workspace=client"
-  },
-  "dependencies": {
-    "@better-auth/mongo-adapter": "^1.2.0",
-    "better-auth": "^1.2.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.0.0",
-    "mongodb": "^6.14.0",
-    "mongoose": "^8.12.1",
-    "nodemailer": "^6.10.0",
-    "zod": "^3.24.2"
   }
 }
