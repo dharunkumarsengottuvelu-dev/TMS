@@ -3,7 +3,7 @@ import { User } from '../models/User.js';
 import { Task } from '../models/Task.js';
 import { ApiError } from '../utils/apiError.js';
 import { recordAudit } from './auditService.js';
-import { sendWelcomeEmail } from './emailService.js';
+import { sendWelcomeEmail, sendEmployeeProfileUpdatedEmail, sendEmployeeStatusChangedEmail } from './emailService.js';
 import { env } from '../config/env.js';
 
 // ---------------------------------------------------------------------------
@@ -353,6 +353,20 @@ export async function updateEmployee({ employeeId, updates, actorId, actorRole, 
     ip,
   });
 
+  // Dispatch profile update email notification (non-blocking)
+  try {
+    const adminActor = await User.findById(actorId).lean();
+    await sendEmployeeProfileUpdatedEmail({
+      employeeName: employee.name,
+      employeeEmail: employee.email,
+      employeeId: employee.employeeId,
+      updatedFields: newValues,
+      updatedByName: adminActor?.name || 'Administrator',
+    });
+  } catch (emailErr) {
+    console.warn('⚠️ [EmployeeService] Profile update email notification notice:', emailErr.message);
+  }
+
   return employee.toObject();
 }
 
@@ -408,6 +422,19 @@ export async function updateEmployeeStatus({ employeeId, isActive, actorId, acto
     },
     ip,
   });
+
+  // Dispatch account activation/deactivation email notification (non-blocking)
+  try {
+    const adminActor = await User.findById(actorId).lean();
+    await sendEmployeeStatusChangedEmail({
+      employeeName: employee.name,
+      employeeEmail: employee.email,
+      isActive,
+      updatedByName: adminActor?.name || 'Administrator',
+    });
+  } catch (emailErr) {
+    console.warn('⚠️ [EmployeeService] Account status email notification notice:', emailErr.message);
+  }
 
   return {
     employee: employee.toObject(),

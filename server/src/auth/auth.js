@@ -1,3 +1,4 @@
+import { URL } from 'node:url';
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from '@better-auth/mongo-adapter';
 import { MongoClient } from 'mongodb';
@@ -19,7 +20,9 @@ export const auth = betterAuth({
     let refererOrigin = null;
     try {
       if (referer) refererOrigin = new URL(referer).origin;
-    } catch {}
+    } catch (e) {
+      void e;
+    }
     return [
       'https://enterprise-tms.vercel.app',
       'https://*.vercel.app',

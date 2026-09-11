@@ -32,20 +32,65 @@ function getTransporter() {
         },
       });
     }
-  } else {
-    // Development fallback transporter (logs preview)
-    transporter = {
-      sendMail: async (mailOptions) => {
-        console.log('\n📧 [Nodemailer Dev Mock] Email intercepted (No SMTP credentials supplied):');
-        console.log(`   To:      ${mailOptions.to}`);
-        console.log(`   Subject: ${mailOptions.subject}`);
-        console.log(`   Snippet: ${mailOptions.text ? mailOptions.text.slice(0, 160) : 'HTML email'}`);
-        return { messageId: 'mock-mail-' + Date.now(), accepted: [mailOptions.to] };
-      },
-    };
   }
 
   return transporter;
+}
+
+let etherealTransporter = null;
+
+async function getEtherealTransporter() {
+  if (etherealTransporter) return etherealTransporter;
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    etherealTransporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+    return etherealTransporter;
+  } catch (err) {
+    console.warn('⚠️ [EmailService] Failed to create Ethereal test account:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Resilient email dispatch:
+ * 1. Tries primary configured SMTP (Gmail, etc.)
+ * 2. If SMTP auth fails (e.g. Google 534-5.7.9), falls back to Ethereal and generates a live preview URL
+ */
+export async function safeSendMail(mailOptions) {
+  const primaryTransport = getTransporter();
+  try {
+    const info = await primaryTransport.sendMail(mailOptions);
+    console.log(`✅ [EmailService] Email dispatched successfully to ${mailOptions.to} (Subject: "${mailOptions.subject}")`);
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.warn(`⚠️ [EmailService] Primary SMTP delivery failed (${err.message}). Attempting resilient Ethereal fallback...`);
+    try {
+      const fallback = await getEtherealTransporter();
+      if (fallback) {
+        const fallbackInfo = await fallback.sendMail({
+          ...mailOptions,
+          from: `"TaskOps Enterprise" <no-reply@taskops.internal>`,
+        });
+        const previewUrl = nodemailer.getTestMessageUrl(fallbackInfo);
+        console.log(`\n📬 [EmailService] Email dispatched via Ethereal fallback!`);
+        console.log(`   To:      ${mailOptions.to}`);
+        console.log(`   Subject: ${mailOptions.subject}`);
+        console.log(`   🔗 View Rendered Email Preview: ${previewUrl}\n`);
+        return { success: true, previewUrl, messageId: fallbackInfo.messageId };
+      }
+    } catch (fallbackErr) {
+      console.error('❌ [EmailService] Fallback dispatch also failed:', fallbackErr.message);
+    }
+    return { success: false, error: err.message };
+  }
 }
 
 /**
@@ -89,15 +134,13 @@ export async function sendTaskAssignedEmail({ employeeName, employeeEmail, taskT
       <div class="footer">Automated notification from Enterprise Task Management System.</div>
     </div></body></html>`;
 
-    const transport = getTransporter();
-    await transport.sendMail({
+    return await safeSendMail({
       from: env.MAIL_FROM,
       to: employeeEmail,
       subject: `[Task Assigned] ${taskTitle} (${priority} Priority)`,
       text: `Hello ${employeeName},\n\nYou have been assigned a new task: ${taskTitle}\nPriority: ${priority}\nAssigned by: ${assignedByName}\n\nPlease check your portal to view details.`,
       html,
     });
-    return { success: true };
   } catch (error) {
     console.error('❌ [EmailService] Failed to send task assignment email:', error.message);
     return { success: false, error: error.message };
@@ -141,15 +184,13 @@ export async function sendTaskStatusUpdatedEmail({ adminEmail, adminName, employ
       <div class="footer">Automated notification from Enterprise Task Management System.</div>
     </div></body></html>`;
 
-    const transport = getTransporter();
-    await transport.sendMail({
+    return await safeSendMail({
       from: env.MAIL_FROM,
       to: adminEmail,
       subject: `[Status Update] ${taskTitle} ➔ ${newStatus.replace('_', ' ')}`,
       text: `Hello ${adminName || 'Admin'},\n\nEmployee ${employeeName} has updated the task "${taskTitle}" status from ${previousStatus} to ${newStatus}.\n\nTimestamp: ${formattedDate}`,
       html,
     });
-    return { success: true };
   } catch (error) {
     console.error('❌ [EmailService] Failed to send status update email:', error.message);
     return { success: false, error: error.message };
@@ -306,17 +347,104 @@ export async function sendWelcomeEmail({
 </body>
 </html>`;
 
-    const transport = getTransporter();
-    await transport.sendMail({
+    return await safeSendMail({
       from: env.MAIL_FROM,
       to: employeeEmail,
       subject: `Welcome to Enterprise TMS, ${employeeName}! Your Account Details [${resolvedEmployeeId}]`,
       text: `Welcome to Enterprise TMS, ${employeeName}!\n\nYour employee account has been created.\n\nEmployee ID: ${resolvedEmployeeId}\nRole: ${resolvedRole}\nDesignation: ${resolvedDesignation}\nDepartment: ${resolvedDepartment}\n\nLogin Email: ${employeeEmail}\n${password ? `Access Password: ${password}\n` : ''}\nPortal URL: ${portalUrl}\n\nEnterprise Task Management System`,
       html,
     });
-    return { success: true };
   } catch (error) {
     console.error('❌ [EmailService] Failed to send welcome email:', error.message);
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Send email when an Administrator updates an employee profile
+ */
+export async function sendEmployeeProfileUpdatedEmail({
+  employeeName,
+  employeeEmail,
+  employeeId,
+  updatedFields = {},
+  updatedByName = 'Administrator',
+}) {
+  try {
+    const fieldRows = Object.entries(updatedFields)
+      .map(([key, val]) => {
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        return `<tr><td style="padding: 10px 16px; font-size: 13px; color: #64748b; font-weight: 500; border-bottom: 1px solid #f1f5f9;">${label}:</td><td style="padding: 10px 16px; font-size: 13px; color: #0f172a; font-weight: 700; border-bottom: 1px solid #f1f5f9;">${val}</td></tr>`;
+      })
+      .join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="padding: 30px 10px;"><tr><td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden;">
+          <tr><td style="background: #0f172a; padding: 24px 28px; color: #fff;"><h1 style="margin: 0; font-size: 18px;">Profile Information Updated</h1></td></tr>
+          <tr><td style="padding: 28px;">
+            <p style="margin: 0 0 16px; font-size: 14px; color: #334155;">Hello <strong>${employeeName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #475569;">Your employee profile details have been updated by <strong>${updatedByName}</strong> in the TaskOps enterprise directory.</p>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 20px;">
+              ${fieldRows}
+            </table>
+            <p style="font-size: 13px; color: #64748b; margin: 0;">If you have questions regarding these changes, please contact your administrator.</p>
+          </td></tr>
+          <tr><td style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 12px; color: #94a3b8;">Automated notification from TaskOps Enterprise.</td></tr>
+        </table>
+      </td></tr></table>
+    </body></html>`;
+
+    return await safeSendMail({
+      from: env.MAIL_FROM,
+      to: employeeEmail,
+      subject: `[Profile Updated] Your TaskOps Account Profile Has Been Updated [${employeeId || 'EMP'}]`,
+      text: `Hello ${employeeName},\n\nYour profile details have been updated by ${updatedByName}.\n\nTaskOps Enterprise`,
+      html,
+    });
+  } catch (error) {
+    console.error('❌ [EmailService] Failed to send profile update email:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Send email when an employee's account status changes (Activated / Deactivated)
+ */
+export async function sendEmployeeStatusChangedEmail({
+  employeeName,
+  employeeEmail,
+  isActive,
+  updatedByName = 'Administrator',
+}) {
+  try {
+    const statusText = isActive ? 'ACTIVATED' : 'DEACTIVATED';
+    const statusColor = isActive ? '#16a34a' : '#dc2626';
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="padding: 30px 10px;"><tr><td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden;">
+          <tr><td style="background: #0f172a; padding: 24px 28px; color: #fff;"><h1 style="margin: 0; font-size: 18px;">Account Status Notification</h1></td></tr>
+          <tr><td style="padding: 28px;">
+            <p style="margin: 0 0 16px; font-size: 14px; color: #334155;">Hello <strong>${employeeName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #475569;">Your TaskOps enterprise portal access has been <span style="color: ${statusColor}; font-weight: 700;">${statusText}</span> by <strong>${updatedByName}</strong>.</p>
+            <p style="font-size: 13px; color: #64748b; margin: 0;">${isActive ? 'You can now log in to the portal and access your assigned tasks.' : 'Your portal access is currently suspended. Please reach out to management for assistance.'}</p>
+          </td></tr>
+          <tr><td style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 12px; color: #94a3b8;">Automated notification from TaskOps Enterprise.</td></tr>
+        </table>
+      </td></tr></table>
+    </body></html>`;
+
+    return await safeSendMail({
+      from: env.MAIL_FROM,
+      to: employeeEmail,
+      subject: `[Account ${statusText}] TaskOps Portal Access Notification`,
+      text: `Hello ${employeeName},\n\nYour TaskOps portal access has been ${statusText} by ${updatedByName}.\n\nTaskOps Enterprise`,
+      html,
+    });
+  } catch (error) {
+    console.error('❌ [EmailService] Failed to send account status email:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
