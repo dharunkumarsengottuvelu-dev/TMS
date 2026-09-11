@@ -8,9 +8,15 @@ import { EmptyState } from '../../components/common/EmptyState.jsx';
 import { CreateTaskModal } from '../../components/tasks/CreateTaskModal.jsx';
 import { Toast } from '../../components/common/Toast.jsx';
 import {
-  Users, UserCheck, UserX, CheckSquare,
-  Clock, ArrowUpRight, Plus, AlertCircle,
-  CheckCircle2, AlertTriangle, Activity as ActivityIcon,
+  Users,
+  CheckSquare,
+  Clock,
+  ArrowUpRight,
+  Plus,
+  AlertCircle,
+  CheckCircle2,
+  Activity as ActivityIcon,
+  TrendingUp,
 } from 'lucide-react';
 
 export function AdminDashboard() {
@@ -38,7 +44,7 @@ export function AdminDashboard() {
   }, [fetchDashboardData]);
 
   const handleTaskCreated = () => {
-    setToastMessage('Task successfully created and assigned to employee!');
+    setToastMessage('Task successfully created and assigned!');
     fetchDashboardData();
   };
 
@@ -48,14 +54,14 @@ export function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="card" style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
-        <AlertCircle size={36} color="var(--color-danger)" style={{ margin: '0 auto 12px' }} />
+      <div className="card" style={{ padding: '24px', textAlign: 'center' }}>
+        <AlertCircle size={32} color="var(--color-danger)" style={{ margin: '0 auto 10px' }} />
         <h3>System Communication Error</h3>
-        <p style={{ marginTop: 8 }}>{error}</p>
+        <p style={{ marginTop: 6, fontSize: '0.86rem' }}>{error}</p>
         <button
           type="button"
           className="btn btn-primary"
-          style={{ marginTop: 16 }}
+          style={{ marginTop: 14 }}
           onClick={fetchDashboardData}
         >
           Retry Connection
@@ -66,18 +72,16 @@ export function AdminDashboard() {
 
   const {
     totalEmployees = 0,
-    activeEmployees = 0,
-    inactiveEmployees = 0,
-    employeesWithOverdue = 0,
     totalTasks = 0,
     notStarted = 0,
     pending = 0,
     inProgress = 0,
     completed = 0,
-    overdueTasks = 0,
     recentTasks = [],
     recentActivities = [],
   } = data || {};
+
+  const completionRate = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
 
   return (
     <div>
@@ -88,11 +92,11 @@ export function AdminDashboard() {
         onDismiss={() => setToastMessage('')}
       />
 
-      {/* Header bar */}
+      {/* Top Header */}
       <div className="page-header">
         <div className="page-title-group">
-          <h1>Enterprise Operations Dashboard</h1>
-          <p>Real-time oversight of organizational workload, active tasks, and team distribution.</p>
+          <h1>Dashboard</h1>
+          <p>Real-time enterprise overview of team capacity, task lifecycles, and operational progress.</p>
         </div>
 
         <div className="page-actions">
@@ -101,182 +105,100 @@ export function AdminDashboard() {
             className="btn btn-primary"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            <Plus size={16} />
-            <span>Create New Task</span>
+            <Plus size={15} />
+            <span>Create Task</span>
           </button>
         </div>
       </div>
 
-      {/* Employee Summary Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
+      {/* 4 Core KPI Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '14px',
+          marginBottom: '20px',
+        }}
+      >
+        {/* Total Employees */}
         <Link to="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', borderLeft: '4px solid var(--primary-600)' }}>
+          <div className="metric-card" style={{ borderLeft: '3px solid var(--primary-600)', cursor: 'pointer' }}>
             <div className="metric-header">
               <span className="metric-title">Total Employees</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: '#e0e7ff', color: 'var(--primary-600)' }}>
-                <Users size={18} />
+              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)' }}>
+                <Users size={16} />
               </div>
             </div>
             <div className="metric-value">{totalEmployees}</div>
-            <div className="metric-desc">Manage directory &rarr;</div>
+            <div className="metric-desc">View directory &rarr;</div>
           </div>
         </Link>
 
-        <Link to="/admin/employees?status=ACTIVE" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', borderLeft: '4px solid var(--color-success)' }}>
-            <div className="metric-header">
-              <span className="metric-title">Active Staff</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
-                <UserCheck size={18} />
-              </div>
-            </div>
-            <div className="metric-value" style={{ color: 'var(--color-success)' }}>{activeEmployees}</div>
-            <div className="metric-desc">Currently active</div>
-          </div>
-        </Link>
-
-        <Link to="/admin/employees?status=INACTIVE" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', borderLeft: '4px solid var(--color-warning)' }}>
-            <div className="metric-header">
-              <span className="metric-title">Inactive Staff</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: '#fffbeb', color: '#d97706' }}>
-                <UserX size={18} />
-              </div>
-            </div>
-            <div className="metric-value" style={{ color: inactiveEmployees > 0 ? '#d97706' : undefined }}>{inactiveEmployees}</div>
-            <div className="metric-desc">Deactivated accounts</div>
-          </div>
-        </Link>
-
-        <Link to="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', borderLeft: `4px solid ${employeesWithOverdue > 0 ? 'var(--color-danger)' : 'var(--border-color)'}` }}>
-            <div className="metric-header">
-              <span className="metric-title">With Overdue</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: employeesWithOverdue > 0 ? 'var(--color-danger-bg)' : '#f1f5f9', color: employeesWithOverdue > 0 ? 'var(--color-danger)' : 'var(--text-muted)' }}>
-                <AlertTriangle size={18} />
-              </div>
-            </div>
-            <div className="metric-value" style={{ color: employeesWithOverdue > 0 ? 'var(--color-danger)' : undefined }}>{employeesWithOverdue}</div>
-            <div className="metric-desc">Employees with overdue tasks</div>
-          </div>
-        </Link>
-      </div>
-
-      {/* Interactive Task Metrics Grid */}
-      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+        {/* Total Tasks */}
         <Link to="/admin/tasks" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', height: '100%' }}>
+          <div className="metric-card" style={{ borderLeft: '3px solid #6B7280', cursor: 'pointer' }}>
             <div className="metric-header">
               <span className="metric-title">Total Tasks</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: '#f1f5f9', color: 'var(--text-secondary)' }}>
-                <CheckSquare size={18} />
+              <div className="metric-icon-wrap" style={{ backgroundColor: '#F1F3F6', color: '#4B5563' }}>
+                <CheckSquare size={16} />
               </div>
             </div>
             <div className="metric-value">{totalTasks}</div>
-            <div className="metric-desc">All records &rarr;</div>
+            <div className="metric-desc">All task records &rarr;</div>
           </div>
         </Link>
 
-
-        <Link to="/admin/tasks?status=NOT_STARTED" style={{ textDecoration: 'none', color: 'inherit' }}>
-
-          <div className="metric-card" style={{ cursor: 'pointer', height: '100%' }}>
-            <div className="metric-header">
-              <span className="metric-title">Not Started</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-not-started-bg)', color: 'var(--status-not-started-text)' }}>
-                <Clock size={18} />
-              </div>
-            </div>
-            <div className="metric-value">{notStarted}</div>
-            <div className="metric-desc">Drill down &rarr;</div>
-          </div>
-        </Link>
-
-        <Link to="/admin/tasks?status=PENDING" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', height: '100%' }}>
-            <div className="metric-header">
-              <span className="metric-title">Pending</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-pending-bg)', color: 'var(--status-pending-text)' }}>
-                <Clock size={18} />
-              </div>
-            </div>
-            <div className="metric-value" style={{ color: 'var(--color-warning)' }}>{pending}</div>
-            <div className="metric-desc">Drill down &rarr;</div>
-          </div>
-        </Link>
-
+        {/* In Progress */}
         <Link to="/admin/tasks?status=IN_PROGRESS" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', height: '100%' }}>
+          <div className="metric-card" style={{ borderLeft: '3px solid var(--primary-600)', cursor: 'pointer' }}>
             <div className="metric-header">
               <span className="metric-title">In Progress</span>
               <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-in-progress-bg)', color: 'var(--status-in-progress-text)' }}>
-                <Clock size={18} />
+                <Clock size={16} />
               </div>
             </div>
-            <div className="metric-value" style={{ color: 'var(--color-info)' }}>{inProgress}</div>
-            <div className="metric-desc">Drill down &rarr;</div>
+            <div className="metric-value" style={{ color: 'var(--primary-600)' }}>{inProgress}</div>
+            <div className="metric-desc">Active execution &rarr;</div>
           </div>
         </Link>
 
+        {/* Completed */}
         <Link to="/admin/tasks?status=COMPLETED" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="metric-card" style={{ cursor: 'pointer', height: '100%' }}>
+          <div className="metric-card" style={{ borderLeft: '3px solid var(--color-success)', cursor: 'pointer' }}>
             <div className="metric-header">
               <span className="metric-title">Completed</span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-completed-bg)', color: 'var(--status-completed-text)' }}>
-                <CheckCircle2 size={18} />
+              <div className="metric-icon-wrap" style={{ backgroundColor: 'var(--status-completed-bg)', color: 'var(--color-success)' }}>
+                <CheckCircle2 size={16} />
               </div>
             </div>
             <div className="metric-value" style={{ color: 'var(--color-success)' }}>{completed}</div>
-            <div className="metric-desc">Drill down &rarr;</div>
-          </div>
-        </Link>
-
-        <Link to="/admin/tasks?filter=overdue" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div
-            className="metric-card"
-            style={{
-              cursor: 'pointer',
-              height: '100%',
-              backgroundColor: overdueTasks > 0 ? '#fff1f2' : undefined,
-              borderColor: overdueTasks > 0 ? '#fecdd3' : undefined,
-            }}
-          >
-            <div className="metric-header">
-              <span className="metric-title" style={{ color: overdueTasks > 0 ? '#9f1239' : undefined }}>
-                Overdue Tasks
-              </span>
-              <div className="metric-icon-wrap" style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>
-                <AlertTriangle size={18} />
-              </div>
-            </div>
-            <div className="metric-value" style={{ color: '#b91c1c' }}>{overdueTasks}</div>
-            <div className="metric-desc" style={{ color: '#9f1239' }}>Requires attention &rarr;</div>
+            <div className="metric-desc">{completionRate}% completion rate</div>
           </div>
         </Link>
       </div>
 
-      {/* Main Grid: Recent Tasks Table + Recent System Activity Feed */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--space-6)', marginTop: 'var(--space-6)' }}>
-        {/* Recent Tasks */}
+      {/* Main Grid: Task Overview + Right Sidebar (Progress & Recent Activity) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }} className="dashboard-main-grid">
+        {/* Task Overview */}
         <div className="card">
           <div className="card-header">
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Recent Task Assignments</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Latest updates from team assignments</p>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#111827' }}>Task Overview</h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Recent operational tasks and assigned personnel</p>
             </div>
             <Link to="/admin/tasks" className="btn btn-secondary btn-sm">
-              <span>View All Tasks</span>
-              <ArrowUpRight size={14} />
+              <span>View All</span>
+              <ArrowUpRight size={13} />
             </Link>
           </div>
 
           {recentTasks.length === 0 ? (
             <EmptyState
-              title="No tasks recorded in database"
-              description="Create your first enterprise task above to distribute workload to employees."
+              title="No tasks in workspace"
+              description="Create a task to assign work to team members."
               action={
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus size={14} />
+                  <Plus size={13} />
                   <span>Create Task</span>
                 </button>
               }
@@ -287,10 +209,10 @@ export function AdminDashboard() {
                 <thead>
                   <tr>
                     <th>Task Title</th>
-                    <th>Assigned Staff</th>
+                    <th>Assigned To</th>
                     <th>Priority</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th style={{ textAlign: 'right' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -299,11 +221,11 @@ export function AdminDashboard() {
                       <td>
                         <span className="table-row-title">{task.title}</span>
                         <span className="table-row-subtext">
-                          {task.description.length > 50 ? `${task.description.slice(0, 50)}...` : task.description}
+                          {task.description && task.description.length > 45 ? `${task.description.slice(0, 45)}...` : task.description || 'No description'}
                         </span>
                       </td>
                       <td>
-                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.84rem' }}>
                           {task.assignedEmployee?.name || 'Unassigned'}
                         </span>
                       </td>
@@ -313,9 +235,9 @@ export function AdminDashboard() {
                       <td>
                         <StatusBadge status={task.status} />
                       </td>
-                      <td>
-                        <Link to={`/admin/tasks/${task._id}`} className="btn btn-secondary btn-sm">
-                          Details
+                      <td style={{ textAlign: 'right' }}>
+                        <Link to={`/admin/tasks/${task._id}`} className="btn btn-secondary btn-sm" style={{ padding: '0 8px', height: '26px' }}>
+                          View
                         </Link>
                       </td>
                     </tr>
@@ -326,53 +248,101 @@ export function AdminDashboard() {
           )}
         </div>
 
-        {/* Live Recent Activity Feed */}
-        <div className="card" style={{ padding: 'var(--space-5)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
-            <ActivityIcon size={18} color="var(--primary-600)" />
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Recent System Activity</h3>
+        {/* Right Column: Progress & Activity */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Progress Card */}
+          <div className="card" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingUp size={16} color="var(--primary-600)" />
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#111827' }}>Progress</h3>
+              </div>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary-600)' }}>
+                {completionRate}%
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#E5E7EB', borderRadius: '4px', overflow: 'hidden', marginBottom: '14px' }}>
+              <div
+                style={{
+                  width: `${completionRate}%`,
+                  height: '100%',
+                  backgroundColor: 'var(--primary-600)',
+                  transition: 'width 0.4s ease',
+                }}
+              />
+            </div>
+
+            {/* Micro Breakdown */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
+              <div style={{ padding: '8px', backgroundColor: '#F8FAFC', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'block' }}>Pending</span>
+                <strong style={{ fontSize: '0.95rem', color: '#B45309' }}>{pending + notStarted}</strong>
+              </div>
+              <div style={{ padding: '8px', backgroundColor: '#F8FAFC', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'block' }}>In Progress</span>
+                <strong style={{ fontSize: '0.95rem', color: 'var(--primary-600)' }}>{inProgress}</strong>
+              </div>
+            </div>
           </div>
 
-          {recentActivities.length === 0 ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: 'var(--space-6)' }}>
-              No recent audit activity.
+          {/* Recent Activity */}
+          <div className="card" style={{ padding: '16px', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <ActivityIcon size={16} color="var(--primary-600)" />
+              <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#111827' }}>Recent Activity</h3>
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {recentActivities.map((act) => (
-                <div
-                  key={act._id}
-                  style={{
-                    fontSize: '0.82rem',
-                    borderLeft: '2px solid var(--primary-400)',
-                    paddingLeft: 'var(--space-3)',
-                  }}
-                >
-                  <div>
-                    <span style={{ fontWeight: 600 }}>{act.actor?.name || 'User'}</span>{' '}
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                      {act.action === 'TASK_CREATED' && 'created task'}
-                      {act.action === 'STATUS_CHANGED' && `updated status to ${act.newValue}`}
-                      {act.action === 'REASSIGNED' && `reassigned to ${act.newValue}`}
-                      {act.action === 'SUBTASK_ADDED' && 'added subtask'}
-                      {act.action === 'SUBTASK_TOGGLED' && act.newValue}
-                      {act.action === 'COMMENT_ADDED' && 'commented on task'}
-                    </span>
-                  </div>
-                  {act.task?.title && (
-                    <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginTop: 2 }}>
-                      "{act.task.title}"
+
+            {recentActivities.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textAlign: 'center', padding: '16px' }}>
+                No recent activity recorded.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {recentActivities.slice(0, 6).map((act) => (
+                  <div
+                    key={act._id}
+                    style={{
+                      fontSize: '0.78rem',
+                      borderLeft: '2px solid var(--primary-600)',
+                      paddingLeft: '10px',
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontWeight: 600, color: '#111827' }}>{act.actor?.name || 'User'}</span>{' '}
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        {act.action === 'TASK_CREATED' && 'created task'}
+                        {act.action === 'STATUS_CHANGED' && `updated status to ${act.newValue}`}
+                        {act.action === 'REASSIGNED' && `reassigned to ${act.newValue}`}
+                        {act.action === 'SUBTASK_ADDED' && 'added subtask'}
+                        {act.action === 'SUBTASK_TOGGLED' && act.newValue}
+                        {act.action === 'COMMENT_ADDED' && 'commented'}
+                      </span>
                     </div>
-                  )}
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                    {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {act.task?.title && (
+                      <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginTop: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        "{act.task.title}"
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                      {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .dashboard-main-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
 
       {/* Task Creation Modal */}
       <CreateTaskModal

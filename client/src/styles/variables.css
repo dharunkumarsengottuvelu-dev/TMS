@@ -1,92 +1,97 @@
 :root {
   /* -------------------------------------------------------------
-   * Design System - Enterprise Palette (Strict MNC Standard)
+   * Design System - Zoho CRM-Inspired Enterprise Palette
    * ------------------------------------------------------------- */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
   /* Surfaces & Backgrounds */
-  --bg-app: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-hover: #f8fafc;
-  --bg-subtle: #f1f5f9;
-  --bg-sidebar: #0b1329;
-  --bg-sidebar-hover: #162244;
-  --bg-sidebar-active: #1d2b56;
+  --bg-app: #F7F8FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F9FAFB;
+  --bg-subtle: #F1F3F6;
+  --bg-input: #FFFFFF;
+  
+  /* Zoho Enterprise Sidebar */
+  --bg-sidebar: #19273C;
+  --bg-sidebar-hover: #22344E;
+  --bg-sidebar-active: #236DB4;
 
   /* Text & Content */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-disabled: #94a3b8;
-  --text-inverted: #ffffff;
-  --text-inverted-muted: #94a3b8;
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --text-disabled: #CBD5E1;
+  --text-inverted: #FFFFFF;
+  --text-inverted-muted: #94A3B8;
 
-  /* Primary Brand (MNC Corporate Cobalt / Indigo) */
-  --primary-50: #eef2ff;
-  --primary-100: #e0e7ff;
-  --primary-200: #c7d2fe;
-  --primary-500: #4f46e5;
-  --primary-600: #4338ca;
-  --primary-700: #3730a3;
-  --primary-focus: rgba(79, 70, 229, 0.25);
+  /* Primary Brand (Zoho Enterprise Blue #236DB4) */
+  --primary-50: #EBF3FA;
+  --primary-100: #D6E6F5;
+  --primary-200: #B8D5EF;
+  --primary-500: #2D7ECF;
+  --primary-600: #236DB4;
+  --primary-700: #1B5792;
+  --primary-800: #154575;
+  --primary-focus: rgba(35, 109, 180, 0.25);
 
-  /* Semantic Status Colors */
-  --color-success: #16a34a;
-  --color-success-bg: #f0fdf4;
-  --color-success-border: #bbf7d0;
+  /* Semantic Status Colors (Zoho Core System) */
+  --color-success: #049949;
+  --color-success-bg: #E7F6ED;
+  --color-success-border: #A3E5BC;
 
-  --color-warning: #d97706;
-  --color-warning-bg: #fffbeb;
-  --color-warning-border: #fde68a;
+  --color-warning: #D97706;
+  --color-warning-zoho: #F9B21D;
+  --color-warning-bg: #FEF7E8;
+  --color-warning-border: #FCE1A3;
 
-  --color-danger: #dc2626;
-  --color-danger-bg: #fef2f2;
-  --color-danger-border: #fecaca;
+  --color-danger: #E42527;
+  --color-danger-bg: #FDE9E9;
+  --color-danger-border: #F7A8A9;
 
-  --color-info: #0284c7;
-  --color-info-bg: #f0f9ff;
-  --color-info-border: #bae6fd;
+  --color-info: #236DB4;
+  --color-info-bg: #EBF3FA;
+  --color-info-border: #B8D5EF;
 
-  /* Task Status Pills */
-  --status-not-started-bg: #f1f5f9;
-  --status-not-started-text: #475569;
-  --status-not-started-border: #cbd5e1;
+  /* Task Status Badges */
+  --status-not-started-bg: #F1F3F6;
+  --status-not-started-text: #4B5563;
+  --status-not-started-border: #E5E7EB;
 
-  --status-pending-bg: #fef3c7;
-  --status-pending-text: #b45309;
-  --status-pending-border: #fde68a;
+  --status-pending-bg: #FEF7E8;
+  --status-pending-text: #B45309;
+  --status-pending-border: #FCE1A3;
 
-  --status-in-progress-bg: #e0f2fe;
-  --status-in-progress-text: #0369a1;
-  --status-in-progress-border: #7dd3fc;
+  --status-in-progress-bg: #EBF3FA;
+  --status-in-progress-text: #1B5792;
+  --status-in-progress-border: #B8D5EF;
 
-  --status-completed-bg: #dcfce7;
-  --status-completed-text: #15803d;
-  --status-completed-border: #86efac;
+  --status-completed-bg: #E7F6ED;
+  --status-completed-text: #049949;
+  --status-completed-border: #A3E5BC;
 
   /* Task Priority Badges */
-  --priority-high-bg: #fee2e2;
-  --priority-high-text: #991b1b;
-  --priority-high-border: #fca5a5;
+  --priority-high-bg: #FDE9E9;
+  --priority-high-text: #E42527;
+  --priority-high-border: #F7A8A9;
 
-  --priority-medium-bg: #fef3c7;
-  --priority-medium-text: #92400e;
-  --priority-medium-border: #fcd34d;
+  --priority-medium-bg: #FEF7E8;
+  --priority-medium-text: #B45309;
+  --priority-medium-border: #FCE1A3;
 
-  --priority-low-bg: #e0e7ff;
-  --priority-low-text: #3730a3;
-  --priority-low-border: #a5b4fc;
+  --priority-low-bg: #EBF3FA;
+  --priority-low-text: #1B5792;
+  --priority-low-border: #B8D5EF;
 
   /* Borders & Dividers */
-  --border-subtle: #e2e8f0;
-  --border-default: #cbd5e1;
-  --border-focus: #4f46e5;
+  --border-subtle: #E5E7EB;
+  --border-default: #D1D5DB;
+  --border-focus: #236DB4;
 
   /* Layout Dimensions */
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
-  --header-height: 64px;
-  --content-max-width: 1400px;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 68px;
+  --header-height: 56px;
+  --content-max-width: 1440px;
 
   /* Spacing Scale */
   --space-1: 4px;
@@ -99,21 +104,21 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Border Radii */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Border Radii (Crisp Enterprise Standard) */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
 
-  /* Shadows (Enterprise Multi-layer) */
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  /* Subtle Enterprise Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
 
   /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }

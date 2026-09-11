@@ -159,22 +159,22 @@ export function AdminTasksPage() {
       />
 
       {/* Header action bar */}
-      <div className="section-header" style={{ marginBottom: 'var(--space-6)' }}>
-        <div>
-          <h1 className="page-title">Enterprise Task Management</h1>
-          <p className="page-subtitle">
-            Centralized operational management, staff assignment, workload monitoring, and audit tracking.
+      <div className="page-header">
+        <div className="page-title-group">
+          <h1>Tasks</h1>
+          <p>
+            Manage, allocate and monitor enterprise tasks and operational delivery.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+        <div className="page-actions">
           <button
             type="button"
             className="btn btn-secondary"
             onClick={handleExportCsv}
             title="Download CSV export"
           >
-            <Download size={15} />
+            <Download size={14} />
             <span>Export CSV</span>
           </button>
 
@@ -183,8 +183,8 @@ export function AdminTasksPage() {
             className="btn btn-primary"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            <Plus size={16} />
-            <span>Assign New Task</span>
+            <Plus size={15} />
+            <span>+ Create Task</span>
           </button>
         </div>
       </div>

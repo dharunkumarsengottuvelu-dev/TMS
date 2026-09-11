@@ -1,16 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { LogOut, Menu, Shield, User, Bell, CheckCheck, ExternalLink } from 'lucide-react';
+import {
+  Menu,
+  Bell,
+  Search,
+  CheckCheck,
+  ChevronDown,
+  CheckSquare,
+  Users,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 
 export function Header({ onToggleSidebar, title }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'ADMIN';
+
+  // Notifications state
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  // Global search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
+
+  // User menu state
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
   const fetchNotifications = async () => {
     try {
@@ -26,14 +46,17 @@ export function Header({ onToggleSidebar, title }) {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Polling every 30s
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setIsNotifOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -72,7 +95,7 @@ export function Header({ onToggleSidebar, title }) {
         // Ignored
       }
     }
-    setIsOpen(false);
+    setIsNotifOpen(false);
     if (notif.relatedTask?._id || notif.relatedTask) {
       const taskId = notif.relatedTask._id || notif.relatedTask;
       const targetPath =
@@ -81,22 +104,35 @@ export function Header({ onToggleSidebar, title }) {
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    if (isAdmin) {
+      navigate(`/admin/tasks?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate(`/employee/tasks?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+    setSearchQuery('');
+  };
+
   return (
     <header
       style={{
         height: 'var(--header-height)',
-        backgroundColor: 'var(--bg-surface)',
+        backgroundColor: '#FFFFFF',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 var(--space-6)',
+        padding: '0 24px',
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+      {/* Left Area: Mobile Menu + Module Title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button
           type="button"
           onClick={onToggleSidebar}
@@ -111,51 +147,131 @@ export function Header({ onToggleSidebar, title }) {
           className="mobile-menu-btn"
           aria-label="Toggle navigation menu"
         >
-          <Menu size={20} />
+          <Menu size={19} />
         </button>
 
-        <span style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--text-primary)' }}>
-          {title || 'Enterprise Portal'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#111827' }}>
+            {title || (isAdmin ? 'Admin Console' : 'Employee Workspace')}
+          </span>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-        {/* In-App Notification Bell */}
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
+      {/* Center Area: Enterprise Global Search */}
+      <form
+        onSubmit={handleSearchSubmit}
+        ref={searchRef}
+        className="header-search-form"
+        style={{
+          flex: '0 1 420px',
+          margin: '0 16px',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: isSearchFocused ? '#FFFFFF' : '#F1F3F6',
+            border: `1px solid ${isSearchFocused ? 'var(--primary-600)' : 'transparent'}`,
+            borderRadius: 'var(--radius-xs)',
+            padding: '0 10px',
+            height: '32px',
+            transition: 'all var(--transition-fast)',
+            boxShadow: isSearchFocused ? '0 0 0 2px var(--primary-focus)' : 'none',
+          }}
+        >
+          <Search size={14} color={isSearchFocused ? 'var(--primary-600)' : '#9CA3AF'} style={{ flexShrink: 0, marginRight: 8 }} />
+          <input
+            type="text"
+            placeholder={isAdmin ? 'Search tasks, employees, records... (Enter to go)' : 'Search my tasks... (Enter to go)'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            style={{
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontSize: '0.82rem',
+              color: 'var(--text-primary)',
+              width: '100%',
+              fontFamily: 'inherit',
+            }}
+          />
+        </div>
+      </form>
+
+      {/* Right Area: Notifications + User Profile */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Quick link to Tasks/Employees for Admin */}
+        {isAdmin && (
+          <div className="header-quick-actions" style={{ display: 'flex', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/tasks')}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.78rem', height: '28px', padding: '0 8px' }}
+              title="All Tasks"
+            >
+              <CheckSquare size={13} style={{ marginRight: 4 }} />
+              <span>Tasks</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/employees')}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.78rem', height: '28px', padding: '0 8px' }}
+              title="Employee Management"
+            >
+              <Users size={13} style={{ marginRight: 4 }} />
+              <span>Employees</span>
+            </button>
+          </div>
+        )}
+
+        {/* Notifications Popover */}
+        <div style={{ position: 'relative' }} ref={notifRef}>
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
             style={{
-              background: 'none',
+              background: 'transparent',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px 10px',
+              borderRadius: 'var(--radius-xs)',
+              width: '32px',
+              height: '32px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               position: 'relative',
-              color: 'var(--text-secondary)',
+              color: isNotifOpen ? 'var(--primary-600)' : '#4B5563',
+              backgroundColor: isNotifOpen ? 'var(--primary-50)' : '#FFFFFF',
+              transition: 'all var(--transition-fast)',
             }}
             title="Notification Center"
+            aria-label="Notifications"
           >
-            <Bell size={18} />
+            <Bell size={16} />
             {unreadCount > 0 && (
               <span
                 style={{
                   position: 'absolute',
-                  top: -4,
-                  right: -4,
-                  backgroundColor: 'var(--danger-500)',
-                  color: '#fff',
+                  top: -3,
+                  right: -3,
+                  backgroundColor: 'var(--color-danger)',
+                  color: '#FFFFFF',
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   borderRadius: '9999px',
-                  minWidth: 16,
-                  height: 16,
+                  minWidth: 15,
+                  height: 15,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '0 4px',
+                  padding: '0 3px',
+                  lineHeight: 1,
                 }}
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
@@ -163,15 +279,15 @@ export function Header({ onToggleSidebar, title }) {
             )}
           </button>
 
-          {isOpen && (
+          {isNotifOpen && (
             <div
               className="card"
               style={{
                 position: 'absolute',
                 right: 0,
                 top: 'calc(100% + 8px)',
-                width: 340,
-                maxHeight: 420,
+                width: 330,
+                maxHeight: 400,
                 boxShadow: 'var(--shadow-lg)',
                 zIndex: 200,
                 padding: 0,
@@ -182,16 +298,16 @@ export function Header({ onToggleSidebar, title }) {
             >
               <div
                 style={{
-                  padding: 'var(--space-3) var(--space-4)',
+                  padding: '10px 14px',
                   borderBottom: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backgroundColor: 'var(--bg-muted)',
+                  backgroundColor: '#F8FAFC',
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                  Notifications {unreadCount > 0 && `(${unreadCount} unread)`}
+                <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#111827' }}>
+                  Notifications {unreadCount > 0 && `(${unreadCount})`}
                 </div>
                 {unreadCount > 0 && (
                   <button
@@ -200,97 +316,70 @@ export function Header({ onToggleSidebar, title }) {
                     style={{
                       background: 'none',
                       border: 'none',
-                      fontSize: '0.75rem',
                       color: 'var(--primary-600)',
+                      fontSize: '0.74rem',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 4,
-                      fontWeight: 500,
+                      gap: '4px',
+                      fontWeight: 600,
+                      padding: 0,
                     }}
                   >
-                    <CheckCheck size={14} /> Mark all read
+                    <CheckCheck size={13} />
+                    Mark all read
                   </button>
                 )}
               </div>
 
-              <div style={{ overflowY: 'auto', flex: 1, maxHeight: 340 }}>
+              <div style={{ overflowY: 'auto', maxHeight: 320 }}>
                 {notifications.length === 0 ? (
-                  <div
-                    style={{
-                      padding: 'var(--space-6)',
-                      textAlign: 'center',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                    }}
-                  >
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                     No notifications
                   </div>
                 ) : (
-                  notifications.map((notif) => (
+                  notifications.map((n) => (
                     <div
-                      key={notif._id}
-                      onClick={() => handleNotificationClick(notif)}
+                      key={n._id}
+                      onClick={() => handleNotificationClick(n)}
                       style={{
-                        padding: 'var(--space-3) var(--space-4)',
-                        borderBottom: '1px solid var(--border-subtle)',
+                        padding: '10px 14px',
+                        borderBottom: '1px solid #F1F5F9',
+                        backgroundColor: n.isRead ? '#FFFFFF' : '#F0F7FD',
                         cursor: 'pointer',
-                        backgroundColor: notif.isRead ? 'transparent' : 'rgba(59, 130, 246, 0.05)',
-                        transition: 'background 0.15s ease',
+                        transition: 'background var(--transition-fast)',
+                        position: 'relative',
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--bg-muted)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = notif.isRead
-                          ? 'transparent'
-                          : 'rgba(59, 130, 246, 0.05)';
-                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#F8FAFC'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = n.isRead ? '#FFFFFF' : '#F0F7FD'; }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          justifyContent: 'space-between',
-                          gap: 'var(--space-2)',
-                        }}
-                      >
-                        <div style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--text-primary)' }}>
-                          {notif.title}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                        <div style={{ fontWeight: n.isRead ? 500 : 700, fontSize: '0.82rem', color: '#111827' }}>
+                          {n.title}
                         </div>
-                        {!notif.isRead && (
+                        {!n.isRead && (
                           <button
                             type="button"
-                            onClick={(e) => handleMarkAsRead(notif._id, e)}
-                            title="Mark as read"
+                            onClick={(e) => handleMarkAsRead(n._id, e)}
                             style={{
                               background: 'none',
                               border: 'none',
                               color: 'var(--primary-600)',
                               cursor: 'pointer',
                               padding: 0,
+                              fontSize: '0.7rem',
                             }}
+                            title="Mark as read"
                           >
-                            <CheckCheck size={14} />
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--primary-600)', display: 'inline-block' }} />
                           </button>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                        {notif.message}
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', lineHeight: 1.35 }}>
+                        {n.message}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.7rem',
-                          color: 'var(--text-muted)',
-                          marginTop: 4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        {new Date(notif.createdAt).toLocaleDateString()} at{' '}
-                        {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        {notif.relatedTask && <ExternalLink size={10} />}
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
                   ))
@@ -300,48 +389,93 @@ export function Header({ onToggleSidebar, title }) {
           )}
         </div>
 
-        {/* User profile & Sign Out */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <div
+        {/* User Profile Chip */}
+        <div style={{ position: 'relative' }} ref={userMenuRef}>
+          <button
+            type="button"
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              backgroundColor: user?.role === 'ADMIN' ? '#e0e7ff' : '#f1f5f9',
-              color: user?.role === 'ADMIN' ? 'var(--primary-600)' : 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: '8px',
+              padding: '4px 8px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xs)',
+              background: '#FFFFFF',
+              cursor: 'pointer',
+              transition: 'all var(--transition-fast)',
             }}
           >
-            {user?.role === 'ADMIN' ? <Shield size={16} /> : <User size={16} />}
-          </div>
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                backgroundColor: 'var(--primary-600)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="header-username">
+              {user?.name || (isAdmin ? 'Admin' : 'Employee')}
+            </span>
+            <ChevronDown size={13} color="#9CA3AF" />
+          </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.88rem', fontWeight: 600, lineHeight: 1.2 }}>
-              {user?.name || 'User'}
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {user?.role}
-            </span>
-          </div>
+          {isUserMenuOpen && (
+            <div
+              className="card"
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 6px)',
+                width: 200,
+                padding: '4px',
+                zIndex: 200,
+                boxShadow: 'var(--shadow-md)',
+              }}
+            >
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#111827' }}>{user?.name}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
+                <div style={{ marginTop: '4px' }}>
+                  <span className={`badge ${isAdmin ? 'badge-role-admin' : 'badge-role-employee'}`} style={{ fontSize: '0.68rem' }}>
+                    {user?.role}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { setIsUserMenuOpen(false); logout(); navigate('/login'); }}
+                className="btn btn-secondary btn-sm"
+                style={{ width: '100%', justifyContent: 'flex-start', border: 'none', color: 'var(--color-danger)' }}
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
-
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={logout}
-          title="Sign out of system"
-        >
-          <LogOut size={15} />
-          <span>Sign Out</span>
-        </button>
       </div>
 
       <style>{`
         @media (max-width: 1024px) {
           .mobile-menu-btn {
             display: inline-flex !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .header-search-form,
+          .header-quick-actions,
+          .header-username {
+            display: none !important;
           }
         }
       `}</style>
