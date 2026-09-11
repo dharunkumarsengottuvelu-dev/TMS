@@ -11,10 +11,23 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config();
 
-const vercelHost = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+const isVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://enterprise-tms.vercel.app');
+
+if (isVercel) {
+  process.env.NODE_ENV = 'production';
+  if (!process.env.BETTER_AUTH_URL || process.env.BETTER_AUTH_URL.includes('localhost')) {
+    process.env.BETTER_AUTH_URL = vercelHost;
+  }
+  if (!process.env.CLIENT_URL || process.env.CLIENT_URL.includes('localhost')) {
+    process.env.CLIENT_URL = vercelHost;
+  }
+}
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default(isVercel ? 'production' : 'development'),
   PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().default(
     process.env.MONGODB_URI ||
@@ -25,10 +38,14 @@ const envSchema = z.object({
     'enterprise_super_secret_session_key_min_32_characters_long_12345'
   ),
   BETTER_AUTH_URL: z.string().default(
-    process.env.BETTER_AUTH_URL || vercelHost || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5000')
+    isVercel
+      ? vercelHost
+      : (process.env.BETTER_AUTH_URL || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5000'))
   ),
   CLIENT_URL: z.string().default(
-    process.env.CLIENT_URL || vercelHost || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5173')
+    isVercel
+      ? vercelHost
+      : (process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5173'))
   ),
   MAIL_HOST: z.string().default('smtp.gmail.com'),
   MAIL_PORT: z.coerce.number().default(587),

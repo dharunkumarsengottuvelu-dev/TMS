@@ -243,10 +243,18 @@ export async function createEmployee({ name, email, role = 'EMPLOYEE', departmen
         email: normalizedEmail,
         password: actualPassword,
       },
-      headers: new globalThis.Headers({ 'x-internal-create': 'true' }),
+      headers: new globalThis.Headers({
+        'x-internal-create': 'true',
+        origin: env.CLIENT_URL || 'http://localhost:5173',
+      }),
     });
-  } catch {
-    throw ApiError.internal('Failed to create employee authentication account. Please try again.');
+  } catch (authErr) {
+    console.error('❌ [createEmployee] Error in auth.api.signUpEmail:', authErr);
+    const message =
+      authErr?.body?.message ||
+      authErr?.message ||
+      'Failed to create employee authentication account. Please try again.';
+    throw ApiError.badRequest(message);
   }
 
   // Update the newly created user record with employee-specific fields

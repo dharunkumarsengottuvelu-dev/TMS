@@ -24,6 +24,24 @@ export async function connectDatabase() {
     const sanitizedHost = conn.connection.host || 'MongoDB cluster';
     console.log(`✅ [Database] Connected successfully to MongoDB host: ${sanitizedHost}`);
 
+    // Self-healing index check for employeeId uniqueness
+    try {
+      const userCollection = conn.connection.db.collection('user');
+      const existingIndexes = await userCollection.indexes();
+      const empIndex = existingIndexes.find((idx) => idx.name === 'employeeId_1');
+      if (empIndex && !empIndex.partialFilterExpression) {
+        console.log('🔄 [Database] Upgrading employeeId_1 index to partialFilterExpression...');
+        await userCollection.dropIndex('employeeId_1');
+        await userCollection.createIndex(
+          { employeeId: 1 },
+          { unique: true, partialFilterExpression: { employeeId: { $type: 'string' } }, name: 'employeeId_1' }
+        );
+        console.log('✅ [Database] employeeId_1 index upgraded successfully.');
+      }
+    } catch (idxErr) {
+      console.warn('⚠️ [Database] Index reconciliation check non-fatal notice:', idxErr.message);
+    }
+
     mongoose.connection.on('error', (err) => {
       console.error('❌ [Database] Runtime connection error:', err.message);
     });

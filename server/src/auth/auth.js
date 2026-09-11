@@ -34,6 +34,7 @@ export const auth = betterAuth({
   database: mongodbAdapter(db),
   advanced: {
     disableOriginCheck: true,
+    useSecureCookies: env.NODE_ENV === 'production' || Boolean(process.env.VERCEL),
   },
   emailAndPassword: {
     enabled: true,
@@ -94,7 +95,6 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
 });
 
 export { mongoClient };
