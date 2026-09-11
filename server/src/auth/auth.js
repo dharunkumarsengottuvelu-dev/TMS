@@ -3,7 +3,10 @@ import { mongodbAdapter } from '@better-auth/mongo-adapter';
 import { MongoClient } from 'mongodb';
 import { env } from '../config/env.js';
 
-const mongoClient = new MongoClient(env.MONGODB_URI);
+const mongoClient = new MongoClient(env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 8000,
+  maxPoolSize: 10,
+});
 await mongoClient.connect();
 const db = mongoClient.db();
 
