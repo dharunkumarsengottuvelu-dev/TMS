@@ -10,15 +10,28 @@ function getTransporter() {
 
   // If user and password provided, configure SMTP transporter
   if (env.MAIL_USER && env.MAIL_PASSWORD) {
-    transporter = nodemailer.createTransport({
-      host: env.MAIL_HOST,
-      port: env.MAIL_PORT,
-      secure: env.MAIL_PORT === 465,
-      auth: {
-        user: env.MAIL_USER,
-        pass: env.MAIL_PASSWORD,
-      },
-    });
+    const cleanPassword = env.MAIL_PASSWORD.replace(/\s+/g, '');
+    const isGmail = env.MAIL_HOST.includes('gmail.com') || env.MAIL_USER.endsWith('@gmail.com');
+
+    if (isGmail) {
+      transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: env.MAIL_USER,
+          pass: cleanPassword,
+        },
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        host: env.MAIL_HOST,
+        port: env.MAIL_PORT,
+        secure: env.MAIL_PORT === 465,
+        auth: {
+          user: env.MAIL_USER,
+          pass: cleanPassword,
+        },
+      });
+    }
   } else {
     // Development fallback transporter (logs preview)
     transporter = {

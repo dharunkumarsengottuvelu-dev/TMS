@@ -14,6 +14,7 @@
     "client": "npm run dev --workspace=client",
     "seed": "npm run seed --workspace=server",
     "build": "npm run build --workspace=client",
-    "lint": "npm run lint --workspace=server && npm run lint --workspace=client"
+    "lint": "npm run lint --workspace=server && npm run lint --workspace=client",
+    "test:mail": "node server/src/scripts/testEmail.js"
   }
 }
