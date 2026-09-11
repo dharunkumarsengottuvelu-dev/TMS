@@ -13,13 +13,24 @@ const db = mongoClient.db();
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    'https://enterprise-tms.vercel.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    env.CLIENT_URL,
-    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
-  ].filter(Boolean),
+  trustedOrigins: (request) => {
+    const origin = request?.headers?.get?.('origin');
+    const referer = request?.headers?.get?.('referer');
+    let refererOrigin = null;
+    try {
+      if (referer) refererOrigin = new URL(referer).origin;
+    } catch {}
+    return [
+      'https://enterprise-tms.vercel.app',
+      'https://*.vercel.app',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:5000',
+      env.CLIENT_URL,
+      origin,
+      refererOrigin,
+    ].filter(Boolean);
+  },
   database: mongodbAdapter(db),
   emailAndPassword: {
     enabled: true,
