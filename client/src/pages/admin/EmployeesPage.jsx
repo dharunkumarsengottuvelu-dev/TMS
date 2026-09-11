@@ -46,7 +46,7 @@ function RoleBadge({ role }) {
   );
 }
 
-function ActionDropdown({
+function ActionMenu({
   employee,
   onEditProfile,
   onStatusToggle,
@@ -223,6 +223,8 @@ function ActionDropdown({
     </div>
   );
 }
+
+const ActionDropdown = ActionMenu;
 
 export function EmployeesPage() {
   const [employees, setEmployees] = useState([]);
@@ -506,14 +508,14 @@ export function EmployeesPage() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: '0.9rem', fontWeight: 700, flexShrink: 0,
                           }}>
-                            {emp.name.charAt(0).toUpperCase()}
+                            {(emp.name || 'E').charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
-                              {emp.name}
+                              {emp.name || 'Unnamed Employee'}
                             </div>
                             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              {emp.email}
+                              {emp.email || '—'}
                             </div>
                           </div>
                         </div>
