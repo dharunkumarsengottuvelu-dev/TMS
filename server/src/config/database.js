@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
 import { env } from './env.js';
+
+// Resolve MongoDB Atlas SRV/TXT records reliably across all Windows networks
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Graceful fallback if system prohibits custom DNS servers
+}
 
 let isConnected = false;
 
