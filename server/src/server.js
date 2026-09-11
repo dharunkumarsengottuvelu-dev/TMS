@@ -64,8 +64,28 @@ async function startServer() {
     process.on('SIGTERM', () => shutdown('SIGTERM'));
   } catch (error) {
     console.error('❌ Critical startup failure:', error.message);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 }
 
-startServer();
+// Serverless handler for Vercel deployment
+export default async function handler(req, res) {
+  try {
+    await connectDatabase();
+    return app(req, res);
+  } catch (error) {
+    console.error('❌ Serverless Database Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Database connection failed in serverless function',
+      error: error.message,
+    });
+  }
+}
+
+// Only start standalone listener when not in Vercel serverless environment
+if (!process.env.VERCEL) {
+  startServer();
+}
