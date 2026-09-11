@@ -50,7 +50,7 @@ const envSchema = z.object({
   MAIL_HOST: z.string().default('smtp.gmail.com'),
   MAIL_PORT: z.coerce.number().default(587),
   MAIL_USER: z.string().default(process.env.MAIL_USER || 'taskmanagemtsystem.info@gmail.com'),
-  MAIL_PASSWORD: z.string().default(process.env.MAIL_PASSWORD || 'jsgmholmapdatmxp'),
+  MAIL_PASSWORD: z.string().default(process.env.MAIL_PASSWORD || 'xpvpstkhncerposg'),
   MAIL_FROM: z.string().default(process.env.MAIL_FROM || '"Enterprise TMS" <taskmanagemtsystem.info@gmail.com>'),
 });
 
