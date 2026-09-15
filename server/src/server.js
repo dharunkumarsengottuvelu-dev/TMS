@@ -1,6 +1,7 @@
 import app from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { env } from './config/env.js';
+import { verifySmtpConnection } from './services/emailService.js';
 import { Task } from './models/Task.js';
 import { User } from './models/User.js';
 import { Activity } from './models/Activity.js';
@@ -14,6 +15,9 @@ async function startServer() {
 
     // Connect to MongoDB Atlas / Database
     await connectDatabase();
+
+    // Verify SMTP connection safely on startup
+    await verifySmtpConnection();
 
     // Verify and synchronize schema indexes safely
     const syncModelIndex = async (model, modelName) => {

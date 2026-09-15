@@ -47,11 +47,18 @@ const envSchema = z.object({
       ? vercelHost
       : (process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? 'https://enterprise-tms.vercel.app' : 'http://localhost:5173'))
   ),
-  MAIL_HOST: z.string().default('smtp.gmail.com'),
-  MAIL_PORT: z.coerce.number().default(587),
-  MAIL_USER: z.string().default(process.env.MAIL_USER || 'taskmanagemtsystem.info@gmail.com'),
-  MAIL_PASSWORD: z.string().default(process.env.MAIL_PASSWORD || 'xpvpstkhncerposg'),
-  MAIL_FROM: z.string().default(process.env.MAIL_FROM || '"Enterprise TMS" <taskmanagemtsystem.info@gmail.com>'),
+  // SMTP & Mail Configuration (supports standard SMTP_* and legacy MAIL_*)
+  SMTP_HOST: z.string().default(process.env.SMTP_HOST || process.env.MAIL_HOST || 'smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().default(Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587)),
+  SMTP_USER: z.string().default(process.env.SMTP_USER || process.env.MAIL_USER || ''),
+  SMTP_PASS: z.string().default(process.env.SMTP_PASS || process.env.MAIL_PASSWORD || ''),
+  EMAIL_FROM: z.string().default(process.env.EMAIL_FROM || process.env.MAIL_FROM || '"TaskOps Enterprise" <noreply@taskops.internal>'),
+
+  MAIL_HOST: z.string().default(process.env.SMTP_HOST || process.env.MAIL_HOST || 'smtp.gmail.com'),
+  MAIL_PORT: z.coerce.number().default(Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587)),
+  MAIL_USER: z.string().default(process.env.SMTP_USER || process.env.MAIL_USER || ''),
+  MAIL_PASSWORD: z.string().default(process.env.SMTP_PASS || process.env.MAIL_PASSWORD || ''),
+  MAIL_FROM: z.string().default(process.env.EMAIL_FROM || process.env.MAIL_FROM || '"TaskOps Enterprise" <noreply@taskops.internal>'),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -48,3 +48,7 @@ export const updateEmployeeSchema = z.object({
 export const employeeStatusSchema = z.object({
   isActive: z.boolean({ required_error: 'isActive boolean is required' }),
 });
+
+export const testEmailSchema = z.object({
+  recipient: z.string().trim().email('Please provide a valid recipient email address').optional(),
+});

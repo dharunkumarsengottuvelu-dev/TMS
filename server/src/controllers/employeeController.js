@@ -135,3 +135,28 @@ export async function deleteEmployee(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * POST /api/employees/email-test — Admin-protected SMTP verification test
+ */
+export async function testEmail(req, res, next) {
+  try {
+    const { sendTestEmail } = await import('../services/emailService.js');
+    const recipient = req.body?.recipient || req.user.email;
+    const result = await sendTestEmail({ to: recipient });
+
+    return sendSuccess(
+      res,
+      {
+        recipient,
+        mode: result.mode,
+        messageId: result.messageId,
+        previewUrl: result.previewUrl || null,
+      },
+      result.success ? 'Diagnostic test email dispatched successfully.' : 'Diagnostic test email delivery failed.',
+      result.success ? 200 : 500
+    );
+  } catch (error) {
+    next(error);
+  }
+}

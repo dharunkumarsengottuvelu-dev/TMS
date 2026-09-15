@@ -9,6 +9,7 @@ import {
   createEmployeeSchema,
   updateEmployeeSchema,
   employeeStatusSchema,
+  testEmailSchema,
 } from '../validators/employeeValidator.js';
 
 const router = Router();
@@ -68,4 +69,12 @@ router.delete(
   employeeController.deleteEmployee
 );
 
+// POST /api/employees/email-test — Admin-protected test email trigger
+router.post(
+  '/email-test',
+  validateRequest({ body: testEmailSchema }),
+  employeeController.testEmail
+);
+
 export default router;
+
